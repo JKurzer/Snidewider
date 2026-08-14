@@ -10,7 +10,7 @@ M, Q = 500, 5
 P = T[12345 : 12345 + M]
 
 COLS = (
-    "hits", "steps", "full_updates", "baseline_steps", "corner_fixes",
+    "hits", "steps", "full_updates", "baseline_steps", "evictions", "back_pops",
     "update_iters", "argmin_iters", "edge_computes", "init_ms", "loop_ms",
 )
 rows = {}

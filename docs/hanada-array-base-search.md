@@ -15,8 +15,9 @@ Implementation of Array+Base-Search (Hanada, Kudo, Nakamura 2014, Fig. 5) in
 
 ## Symptom
 
-Bench (`scripts/bench_hanada.py`; paper settings |t|=100,000, |Σ|=20, q=5,
-k=|p|−q, patterns drawn from t): Hanada only 1.2–1.7x faster than the Ukkonen
+Bench (`scripts/bench_hanada.py`; |t|=100,000, |Σ|=20, q=5, patterns drawn
+from t as in the paper's Sec. 5.1; we use k=|p|−q, the largest k inside our
+validated regime -- the paper's experiment itself uses k=|p|): Hanada only 1.2–1.7x faster than the Ukkonen
 baseline, and time grows ~linearly in k. Expected average-case O(|t|+|p|),
 i.e. ~flat in |p|.
 
