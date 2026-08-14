@@ -12,6 +12,7 @@
 #include <pybind11/pybind11.h>
 
 #include <algorithm>
+#include <chrono>
 #include <cstdint>
 #include <stdexcept>
 #include <string>
@@ -169,9 +170,24 @@ struct SearchHit {
     std::int64_t end;  // exclusive
 };
 
+// Profiling counters (PERF-RULES #2: instrument first). When non-null,
+// qgram_search fills these so we can see WHERE the time goes per path.
+struct SearchStats {
+    std::int64_t steps = 0;
+    std::int64_t full_updates = 0;
+    std::int64_t baseline_steps = 0;
+    std::int64_t corner_fixes = 0;
+    std::int64_t update_iters = 0;   // total slot +=/-= work
+    std::int64_t argmin_iters = 0;   // total argmin scan work
+    std::int64_t edge_computes = 0;
+    std::int64_t init_iters = 0;
+    double init_ns = 0.0;
+    double loop_ns = 0.0;
+};
+
 template <bool kBaselineSkip>
 std::vector<SearchHit> qgram_search(const std::string& t, const std::string& p, int q,
-                                    std::int64_t k) {
+                                    std::int64_t k, SearchStats* stats = nullptr) {
     check_q(q);
     const std::int64_t n = static_cast<std::int64_t>(t.size());
     const std::int64_t m = static_cast<std::int64_t>(p.size());
@@ -215,6 +231,8 @@ std::vector<SearchHit> qgram_search(const std::string& t, const std::string& p, 
 
     std::unordered_map<Code, std::int64_t> wnd;  // gram counts in t[i..e]
 
+    const auto t_init0 = std::chrono::steady_clock::now();
+
     // ---- init at i = 0 (Fig. 5, lines 1-6) ----
     std::int64_t b = m - 1 - k;
     std::int64_t e = std::min(m - 1 + k, n - 1);
@@ -226,18 +244,27 @@ std::vector<SearchHit> qgram_search(const std::string& t, const std::string& p, 
         cur_d += (cnt <= pcount(g)) ? -1 : +1;
         const std::int64_t j = s + q - 1;
         if (j >= b) slot(j) = cur_d;
+        if (stats) ++stats->init_iters;
     }
     std::int64_t jstar = argmin_over(b, e);
+    if (stats) stats->argmin_iters += e - b;
     std::int64_t o = 0;
     if constexpr (kBaselineSkip) {
         o = slot(jstar);
         for (std::int64_t j = b; j <= e; ++j) slot(j) -= o;
     }
     if (o + slot(jstar) <= k) hits.push_back({0, jstar + 1});
+    if (stats) {
+        stats->init_ns = std::chrono::duration<double, std::nano>(
+                             std::chrono::steady_clock::now() - t_init0)
+                             .count();
+    }
 
     // ---- advance (Fig. 5, lines 7-23) ----
+    const auto t_loop0 = std::chrono::steady_clock::now();
     const std::int64_t last_start = n - q;
     for (std::int64_t cur = 0; cur < last_start; ++cur) {
+        if (stats) ++stats->steps;
         // change point for the gram leaving at cur (Property 1)
         const Code s = codes_t[cur];
         const std::int64_t m_s = pcount(s);
@@ -256,15 +283,29 @@ std::vector<SearchHit> qgram_search(const std::string& t, const std::string& p, 
         const bool c_inside = (c >= b && c <= e);
         const bool full_update = !kBaselineSkip || c_inside;
         if (full_update) {  // full update path (Fig. 5, 12-13)
-            for (std::int64_t j = b; j <= std::min(c - 1, e_prev); ++j) slot(j) += 1;
-            for (std::int64_t j = std::max(c, b); j <= e_prev; ++j) slot(j) -= 1;
+            const std::int64_t up_hi = std::min(c - 1, e_prev);
+            for (std::int64_t j = b; j <= up_hi; ++j) slot(j) += 1;
+            const std::int64_t dn_lo = std::max(c, b);
+            for (std::int64_t j = dn_lo; j <= e_prev; ++j) slot(j) -= 1;
+            if (stats) {
+                ++stats->full_updates;
+                stats->update_iters +=
+                    (up_hi >= b ? up_hi - b + 1 : 0) + (e_prev >= dn_lo ? e_prev - dn_lo + 1 : 0);
+                if (b <= e_prev) stats->argmin_iters += e_prev - b;
+            }
             if (b <= e_prev) jstar = argmin_over(b, e_prev);
         } else if (c < b) {  // baseline-only path (Fig. 5, 14-17)
             o -= 1;
+            if (stats) ++stats->baseline_steps;
         } else {
             o += 1;
+            if (stats) ++stats->baseline_steps;
         }
         if (jstar < b) {  // corner fix: j* erased at the left edge
+            if (stats) {
+                ++stats->corner_fixes;
+                if (b <= e_prev) stats->argmin_iters += e_prev - b;
+            }
             jstar = (b <= e_prev) ? argmin_over(b, e_prev) : b;
         }
 
@@ -282,8 +323,14 @@ std::vector<SearchHit> qgram_search(const std::string& t, const std::string& p, 
             const std::int64_t cnt = ++wnd[g];
             slot(e) = slot(e - 1) + ((cnt <= pcount(g)) ? -1 : +1);
             if (slot(e) <= slot(jstar)) jstar = e;
+            if (stats) ++stats->edge_computes;
         }
         if (o + slot(jstar) <= k) hits.push_back({i, jstar + 1});
+    }
+    if (stats) {
+        stats->loop_ns = std::chrono::duration<double, std::nano>(
+                             std::chrono::steady_clock::now() - t_loop0)
+                             .count();
     }
     return hits;
 }
@@ -307,6 +354,25 @@ py::list search_ukkonen(const py::bytes& t, const py::bytes& p, int q, std::int6
     return search_impl(t, p, q, k, false);
 }
 
+py::dict search_debug(const py::bytes& t, const py::bytes& p, int q, std::int64_t k) {
+    const std::string ts = t, ps = p;
+    SearchStats stats;
+    const auto hits = qgram_search<true>(ts, ps, q, k, &stats);
+    py::dict d;
+    d["hits"] = hits.size();
+    d["steps"] = stats.steps;
+    d["full_updates"] = stats.full_updates;
+    d["baseline_steps"] = stats.baseline_steps;
+    d["corner_fixes"] = stats.corner_fixes;
+    d["update_iters"] = stats.update_iters;
+    d["argmin_iters"] = stats.argmin_iters;
+    d["edge_computes"] = stats.edge_computes;
+    d["init_iters"] = stats.init_iters;
+    d["init_ms"] = stats.init_ns / 1e6;
+    d["loop_ms"] = stats.loop_ns / 1e6;
+    return d;
+}
+
 }  // namespace
 
 PYBIND11_MODULE(_qgram_native, m) {
@@ -328,4 +394,6 @@ PYBIND11_MODULE(_qgram_native, m) {
     m.def("search_ukkonen", &search_ukkonen, py::arg("t"), py::arg("p"), py::arg("q") = 5,
           py::arg("k"),
           "Ukkonen Array-Search (O(|t|k)); same results, bench baseline.");
+    m.def("search_debug", &search_debug, py::arg("t"), py::arg("p"), py::arg("q") = 5,
+          py::arg("k"), "Hanada search with profiling counters (PERF-RULES instrumentation).");
 }

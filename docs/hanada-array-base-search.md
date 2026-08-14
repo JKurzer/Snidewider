@@ -1,3 +1,9 @@
+# NEEDS TO BE VERIFIED
+
+> The claim below about Hanada et al. 2014 (Fig. 5 / §4.1 premise) rests on
+> our counters and oracle tests. Verify against the paper before citing
+> externally or building further on it.
+
 # Hanada Array+Base-Search — profiling findings (2026-08-14)
 
 ## Context
