@@ -1,8 +1,8 @@
-# NEEDS TO BE VERIFIED
+# VERIFIED (see docs/hanada-verification.md; fix in docs/hanada-deque-fix.md)
 
-> The claim below about Hanada et al. 2014 (Fig. 5 / §4.1 premise) rests on
-> our counters and oracle tests. Verify against the paper before citing
-> externally or building further on it.
+> All claims independently verified against the paper 2026-08-14 (6/6
+> CONFIRMED). The corner is real, the mechanism holds, and the fix (monotone
+> deque = the paper's own DEL-FIRST idea) lands in docs/hanada-deque-fix.md.
 
 # Hanada Array+Base-Search — profiling findings (2026-08-14)
 
