@@ -1,0 +1,25 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ai-text-detection"
+version = "0.1.0"
+description = "Detecting AI-generated text at scale, reliably. Paper-driven."
+requires-python = ">=3.11"
+dependencies = [
+    "numpy",
+    "pandas",
+    "pyarrow",
+    "scikit-learn",
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "ruff"]
+neural = ["torch", "transformers"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ai_text_detection"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
