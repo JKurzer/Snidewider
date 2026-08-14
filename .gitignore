@@ -1,6 +1,8 @@
 .venv/
 __pycache__/
 *.pyc
+*.pyd
+build/
 *.egg-info/
 data/raw/*
 data/derived/*

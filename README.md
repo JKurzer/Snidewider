@@ -26,8 +26,10 @@ paraphrasing.
 
 ```
 data/            raw (immutable) + derived artifacts — gitignored, see RULES.md
+docs/            knowledge corpus: distilled notes on every reference
 papers/          the paper(s) driving this
-src/ai_text_detection/   the package
+scripts/         extract_pdf, build_ck2 (native ext), bench_ck2
+src/ai_text_detection/   the package (+ native/ vendored CK2 headers)
 tests/           pytest
 RULES.md         the pinned rules card — the floor
 ```
@@ -38,5 +40,6 @@ RULES.md         the pinned rules card — the floor
 python -m venv .venv
 .venv\Scripts\activate
 pip install -e .[dev]
+python scripts/build_ck2.py   # native CK2 extension (needs MSVC; optional, pure-Python fallback)
 pytest
 ```

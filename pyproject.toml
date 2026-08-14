@@ -11,11 +11,12 @@ dependencies = [
     "numpy",
     "pandas",
     "pyarrow",
+    "rapidfuzz",
     "scikit-learn",
 ]
 
 [project.optional-dependencies]
-dev = ["pytest", "ruff"]
+dev = ["pytest", "ruff", "pypdf", "pybind11", "setuptools"]
 neural = ["torch", "transformers"]
 
 [tool.hatch.build.targets.wheel]
