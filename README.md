@@ -28,7 +28,7 @@ paraphrasing.
 data/            raw (immutable) + derived artifacts — gitignored, see RULES.md
 docs/            knowledge corpus: distilled notes on every reference
 papers/          the paper(s) driving this
-scripts/         extract_pdf, build_ck2 (native ext), bench_ck2
+scripts/         extract_pdf, build_native (native exts), bench_ck2, bench_qgram
 src/ai_text_detection/   the package (+ native/ vendored CK2 headers)
 tests/           pytest
 RULES.md         the pinned rules card — the floor
@@ -40,6 +40,6 @@ RULES.md         the pinned rules card — the floor
 python -m venv .venv
 .venv\Scripts\activate
 pip install -e .[dev]
-python scripts/build_ck2.py   # native CK2 extension (needs MSVC; optional, pure-Python fallback)
+python scripts/build_native.py   # native CK2 + q-gram extensions (needs MSVC; CK2 has a pure-Python fallback)
 pytest
 ```

@@ -49,5 +49,23 @@ folder — definition from the literature.
   count-difference* variant over DNA/RNA/AA alphabets — wrong semantics for us.
 - No public implementation of Hanada's algorithms found.
 - **Conclusion: no installable native q-gram library with our semantics exists.**
-  Options are with Donk (faithful port bound like CK2 vs numpy-primitive assembly vs
-  other) — see repo discussion; decision pending before detector wiring.
+
+## Decision (Donk, 2026-08-14): Option A — faithful port, oracle-tested
+
+Go-binding route evaluated and rejected: stringosim's q-gram is stdlib-only but
+slow in kind (map[string]int + per-gram string allocs + regex compiled per call),
+and cgo/c-shared on Windows would add Go + mingw toolchains for a mediocre
+implementation. Instead: faithful port of the paper algorithm into
+`native/qgram_module.cpp` (rolling base-256 codes, exact for q<=8; std::sort +
+merge-walk per Donk's "use sort for now"), bound via pybind11 like CK2.
+
+Verification (`tests/test_qgram.py`): all 7 whitespace-free published vectors
+from stringosim's own test suite pass verbatim, plus hand-computed cases and a
+naive dict-oracle fuzz (q=1..8, alphabets {2,26,256}, to 600 B). Bag distance
+shares the merge-walk: max(P,N) at q=1.
+
+Measured (this machine): native ~3-7x faster than the dict oracle (sort's log
+factor shows at 20 KB; radix sort or the paper's counting array is the known
+upgrade path if profiling ever makes q-gram the bottleneck). Corpus pattern:
+50 x 2 KB docs = 31 ms one-shot, 7 ms with cached profiles — profile caching is
+the scale story (`profile()` -> `distance_profiles()`).

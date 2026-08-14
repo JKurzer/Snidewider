@@ -6,7 +6,7 @@ approximation of Levenshtein/Damerau-Levenshtein distance. Score semantics:
 "similarity" name in the C++ sources, it behaves as a normalized distance.
 
 Usage prefers the native extension (`_ck2_native`, built by
-scripts/build_ck2.py from the vendored headers in native/). The pure-Python
+scripts/build_native.py from the vendored headers in native/). The pure-Python
 port below is a faithful transcription of ck::sparse and exists as the
 correctness oracle in tests and as a last-resort fallback. It is O(m+n) but
 with pure-Python constants — do not use it at scale.
