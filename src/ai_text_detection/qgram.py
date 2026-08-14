@@ -83,3 +83,26 @@ def bag_distance_profiles(x: Profile, y: Profile) -> int:
     """Bag distance between cached q=1 profiles."""
     pos, neg = _qgram_native.diff_profiles(x, y)
     return max(pos, neg)
+
+
+def search(t: BytesLike, p: BytesLike, q: int = 5, k: int | None = None) -> list[tuple[int, int]]:
+    """Hanada Array+Base-Search: every (start, end) whose substring t[start:end]
+    is within q-gram distance k of p (best per start, longest on ties).
+
+    Average-case O(len(t) + len(p)) under the paper's randomness condition
+    (q >= ~2 log_{1/rmax} len(p)). k defaults to len(p) - q, the largest value
+    keeping every in-scope substring >= q chars (the paper's working regime).
+    """
+    T, P = _as_bytes(t), _as_bytes(p)
+    if k is None:
+        k = len(P) - q
+    return [(int(s), int(e)) for s, e in _qgram_native.search(T, P, q, k)]
+
+
+def search_ukkonen(t: BytesLike, p: BytesLike, q: int = 5, k: int | None = None) -> list[tuple[int, int]]:
+    """Ukkonen's original Array-Search: same results as `search`, O(|t|k).
+    Kept as the benchmark baseline demonstrating Hanada's improvement."""
+    T, P = _as_bytes(t), _as_bytes(p)
+    if k is None:
+        k = len(P) - q
+    return [(int(s), int(e)) for s, e in _qgram_native.search_ukkonen(T, P, q, k)]
