@@ -1,18 +1,12 @@
-"""q-gram distance/similarity — Ukkonen 1992, native-backed.
+"""q-gram distance/similarity (Ukkonen 1992), native-backed.
 
-d_q(x,y) = L1 distance between q-gram count profiles (all substrings of
-length q). Lower bound on edit distance: d_q(x,y) <= 2q * d_edit(x,y).
-Bag distance (Bartolini et al. 2002) is the q=1 case with max(P, N)
-instead of P + N.
+d_q(x,y) = L1 between q-gram count profiles; d_q <= 2q * d_edit. Bag
+distance (Bartolini 2002) is the q=1 case with max(P, N) instead of P + N.
 
-Raw byte semantics: no case folding, no whitespace stripping. Feed UTF-8
-bytes and do any normalization in the feature layer. There is deliberately
-NO pure-Python fallback here — the shipped implementation is the native
-port (scripts/build_native.py); tests carry a naive oracle to verify it.
-
-Profile caching: `profile()` results can be reused via `distance_profiles`
-/ `bag_distance_profiles` — profiles are plain lists of (int, int) tuples,
-trivially serializable for corpus-scale work.
+Raw byte semantics: no case folding, no whitespace stripping — normalize in
+the feature layer. No pure-Python fallback by design; tests carry the naive
+oracle. `profile()` results are plain (code, count) tuples: cache them and
+reuse via distance_profiles / bag_distance_profiles at corpus scale.
 """
 
 from __future__ import annotations

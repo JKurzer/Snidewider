@@ -1,18 +1,12 @@
-"""CK2 similarity — Python bindings with a pure-Python reference port.
+"""CK2 — linear-time Levenshtein approximation, native-bound.
 
-CK2 (Donk's name; the headers call it CKS / ck::sparse) is a linear-time
-approximation of Levenshtein/Damerau-Levenshtein distance. Score semantics:
-0.0 = identical, 1.0 = maximally different — despite the historical
-"similarity" name in the C++ sources, it behaves as a normalized distance.
+Score semantics: 0.0 = identical, 1.0 = maximally different (a normalized
+distance despite the historical "similarity" name in the C++ sources).
 
-Usage prefers the native extension (`_ck2_native`, built by
-scripts/build_native.py from the vendored headers in native/). The pure-Python
-port below is a faithful transcription of ck::sparse and exists as the
-correctness oracle in tests and as a last-resort fallback. It is O(m+n) but
-with pure-Python constants — do not use it at scale.
-
-Provenance: ck_similarity_sparse{,8}.hpp, novel implementation of the lapsed
-CKS patent (see StatisticalMeasuresReferences/Readme.md).
+The native extension (scripts/build_native.py) is the fast path; the
+pure-Python port below is the correctness oracle used by tests. Provenance:
+vendored ck_similarity_sparse{,8}.hpp (novel implementation of the lapsed
+CKS patent).
 """
 
 from __future__ import annotations

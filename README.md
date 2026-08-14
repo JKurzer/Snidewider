@@ -5,6 +5,22 @@ resisting the urge to throw a transformer at everything before the fast baseline
 have had their say, and reporting numbers that survive contact with adversarial
 paraphrasing.
 
+## The toolkit (native-speed, tested, benchmarked)
+
+| Primitive | What it is | Use it for |
+|---|---|---|
+| **CK2** | Linear-time Levenshtein-approx score (0=identical, 1=max different) | Pairwise near-duplicate/paraphrase proximity |
+| **q-gram** | Ukkonen distance/similarity over length-q profiles | Multiset-overlap signal, edit-distance lower bound |
+| **bag** | Bartolini bag distance (q=1 case) | Cheapest character-multiset signal |
+| **Hanada search** | Average-case linear substring search by q-gram distance | Find all substrings of a corpus within distance k of a pattern |
+
+```
+aidt ck2 kitten sitting           # 0.285714 (0 = identical)
+aidt qgram "the quick fox" "the quick foxes" -q 3
+aidt bag aab abb
+aidt search "suspicious phrase" corpus.txt -q 5
+```
+
 ## The Paper
 
 > TODO(Donk): drop the promising new paper in here (link/PDF in `papers/`), then
@@ -26,12 +42,14 @@ paraphrasing.
 
 ```
 data/            raw (immutable) + derived artifacts — gitignored, see RULES.md
-docs/            knowledge corpus: distilled notes on every reference
+docs/            knowledge corpus: distilled notes on every reference + findings
 papers/          the paper(s) driving this
-scripts/         extract_pdf, build_native (native exts), bench_ck2, bench_qgram
-src/ai_text_detection/   the package (+ native/ vendored CK2 headers)
+scripts/         extract_pdf, build_native, profile_hanada, bench_* (separate)
+src/ai_text_detection/   the package: ck2.py, qgram.py, __main__.py (aidt CLI),
+                         native/ (vendored C++), built extensions
 tests/           pytest
 RULES.md         the pinned rules card — the floor
+PERF-RULES.md    the pinned performance card — measure, never guess
 ```
 
 ## Quickstart
