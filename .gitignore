@@ -2,8 +2,10 @@
 __pycache__/
 *.pyc
 *.egg-info/
-data/raw/
-data/derived/
+data/raw/*
+data/derived/*
+!data/raw/.gitkeep
+!data/derived/.gitkeep
 papers/*.pdf
 .pytest_cache/
 .ruff_cache/
