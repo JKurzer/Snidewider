@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <chrono>
 #include <cstdint>
+#include <deque>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
@@ -176,9 +177,10 @@ struct SearchStats {
     std::int64_t steps = 0;
     std::int64_t full_updates = 0;
     std::int64_t baseline_steps = 0;
-    std::int64_t corner_fixes = 0;
+    std::int64_t evictions = 0;      // deque front pops (left-edge leaves scope)
+    std::int64_t back_pops = 0;      // deque insertions evicting worse candidates
     std::int64_t update_iters = 0;   // total slot +=/-= work
-    std::int64_t argmin_iters = 0;   // total argmin scan work
+    std::int64_t argmin_iters = 0;   // total argmin/deque-rebuild scan work
     std::int64_t edge_computes = 0;
     std::int64_t init_iters = 0;
     double init_ns = 0.0;
@@ -229,6 +231,28 @@ std::vector<SearchHit> qgram_search(const std::string& t, const std::string& p, 
         return jj;
     };
 
+    // Hanada path: sliding-window min as a monotone deque of (j, offset),
+    // front = min offset with largest-j-on-ties. Frozen relative order on the
+    // baseline path (uniform o shifts) makes eviction/insertion amortized O(1);
+    // full updates rebuild it O(k), charged to alpha. This is the paper's own
+    // List+Base candidate-list idea (Sec. 4.3, DEL-FIRST eviction) applied to
+    // the Array variant -- and it replaces the argmin corner fix entirely.
+    std::deque<std::pair<std::int64_t, std::int64_t>> cand;
+    auto deque_push = [&](std::int64_t j) {
+        while (!cand.empty() && cand.back().second >= slot(j)) {
+            cand.pop_back();
+            if (stats) ++stats->back_pops;
+        }
+        cand.emplace_back(j, slot(j));
+    };
+    auto deque_rebuild = [&](std::int64_t lo, std::int64_t hi) {
+        cand.clear();
+        for (std::int64_t j = lo; j <= hi; ++j) {
+            deque_push(j);
+            if (stats) ++stats->argmin_iters;
+        }
+    };
+
     std::unordered_map<Code, std::int64_t> wnd;  // gram counts in t[i..e]
 
     const auto t_init0 = std::chrono::steady_clock::now();
@@ -252,6 +276,8 @@ std::vector<SearchHit> qgram_search(const std::string& t, const std::string& p, 
     if constexpr (kBaselineSkip) {
         o = slot(jstar);
         for (std::int64_t j = b; j <= e; ++j) slot(j) -= o;
+        deque_rebuild(b, e);
+        jstar = cand.front().first;
     }
     if (o + slot(jstar) <= k) hits.push_back({0, jstar + 1});
     if (stats) {
@@ -293,7 +319,11 @@ std::vector<SearchHit> qgram_search(const std::string& t, const std::string& p, 
                     (up_hi >= b ? up_hi - b + 1 : 0) + (e_prev >= dn_lo ? e_prev - dn_lo + 1 : 0);
                 if (b <= e_prev) stats->argmin_iters += e_prev - b;
             }
-            if (b <= e_prev) jstar = argmin_over(b, e_prev);
+            if constexpr (kBaselineSkip) {
+                deque_rebuild(b, e_prev);  // relative order changed: O(k) rebuild
+            } else if (b <= e_prev) {
+                jstar = argmin_over(b, e_prev);
+            }
         } else if (c < b) {  // baseline-only path (Fig. 5, 14-17)
             o -= 1;
             if (stats) ++stats->baseline_steps;
@@ -301,11 +331,14 @@ std::vector<SearchHit> qgram_search(const std::string& t, const std::string& p, 
             o += 1;
             if (stats) ++stats->baseline_steps;
         }
-        if (jstar < b) {  // corner fix: j* erased at the left edge
-            if (stats) {
-                ++stats->corner_fixes;
-                if (b <= e_prev) stats->argmin_iters += e_prev - b;
+        if constexpr (kBaselineSkip) {
+            if (!full_update) {  // structural eviction (DEL-FIRST analogue)
+                while (!cand.empty() && cand.front().first < b) {
+                    cand.pop_front();
+                    if (stats) ++stats->evictions;
+                }
             }
+        } else if (jstar < b) {  // corner fix: j* erased at the left edge
             jstar = (b <= e_prev) ? argmin_over(b, e_prev) : b;
         }
 
@@ -322,8 +355,15 @@ std::vector<SearchHit> qgram_search(const std::string& t, const std::string& p, 
             const Code g = codes_t[e - q + 1];
             const std::int64_t cnt = ++wnd[g];
             slot(e) = slot(e - 1) + ((cnt <= pcount(g)) ? -1 : +1);
-            if (slot(e) <= slot(jstar)) jstar = e;
+            if constexpr (kBaselineSkip) {
+                deque_push(e);
+                jstar = cand.front().first;
+            } else if (slot(e) <= slot(jstar)) {
+                jstar = e;
+            }
             if (stats) ++stats->edge_computes;
+        } else if constexpr (kBaselineSkip) {
+            jstar = cand.front().first;
         }
         if (o + slot(jstar) <= k) hits.push_back({i, jstar + 1});
     }
@@ -363,7 +403,8 @@ py::dict search_debug(const py::bytes& t, const py::bytes& p, int q, std::int64_
     d["steps"] = stats.steps;
     d["full_updates"] = stats.full_updates;
     d["baseline_steps"] = stats.baseline_steps;
-    d["corner_fixes"] = stats.corner_fixes;
+    d["evictions"] = stats.evictions;
+    d["back_pops"] = stats.back_pops;
     d["update_iters"] = stats.update_iters;
     d["argmin_iters"] = stats.argmin_iters;
     d["edge_computes"] = stats.edge_computes;
