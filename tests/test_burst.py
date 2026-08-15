@@ -38,6 +38,15 @@ def test_short_doc_returns_nan_stats():
     assert math.isnan(features["mean"])
 
 
+def test_bag_metric_bounds_and_repetition():
+    text = " ".join(f"word{i % 37}" for i in range(300))
+    bag_series = burst.change_series(text, metric="bag")
+    assert len(bag_series) == len(burst.change_series(text, metric="ck2"))
+    assert all(0.0 <= s <= 1.0 for s in bag_series)
+    repetitive = burst.burst_features(" ".join(["same"] * 500), metric="bag")
+    assert repetitive["mean"] == 0.0
+
+
 def test_deterministic_and_qgram_metric_works():
     text = " ".join(f"word{i % 37}" for i in range(300))
     assert burst.change_series(text, metric="ck2") == burst.change_series(text, metric="ck2")

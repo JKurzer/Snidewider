@@ -28,6 +28,8 @@ def _distance(a: bytes, b: bytes, metric: str) -> float:
         return ck2.similarity(a, b)
     if metric == "qgram":
         return 1.0 - qgram.similarity(a, b)
+    if metric == "bag":
+        return 1.0 - qgram.bag_similarity(a, b)
     raise ValueError(f"unknown metric: {metric!r}")
 
 

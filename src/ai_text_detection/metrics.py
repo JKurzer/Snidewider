@@ -7,14 +7,22 @@ def auroc(ai_scores: list[float], human_scores: list[float]) -> float:
     """P(ai > human) via the Mann-Whitney rank statistic.
 
     Direction lives in the value: >0.5 means AI scores higher than human.
-    Ties are unhandled (fine for continuous float scores).
+    Ties get average ranks — matters for discrete features (e.g. q-gram
+    count percentiles), where tuple-order tie-breaking would fabricate AUROC.
     """
-    combined = [(s, 1) for s in ai_scores] + [(s, 0) for s in human_scores]
-    combined.sort()
-    rank_sum_ai = sum(rank for rank, (_, is_ai) in enumerate(combined, 1) if is_ai)
     n_ai, n_h = len(ai_scores), len(human_scores)
     if n_ai == 0 or n_h == 0:
         raise ValueError("both classes must be non-empty")
+    combined = sorted([(s, 1) for s in ai_scores] + [(s, 0) for s in human_scores])
+    rank_sum_ai = 0.0
+    i = 0
+    while i < len(combined):
+        j = i
+        while j + 1 < len(combined) and combined[j + 1][0] == combined[i][0]:
+            j += 1
+        avg_rank = (i + 1 + j + 1) / 2  # 1-based mean rank of the tie block
+        rank_sum_ai += avg_rank * sum(is_ai for _, is_ai in combined[i : j + 1])
+        i = j + 1
     return (rank_sum_ai - n_ai * (n_ai + 1) / 2) / (n_ai * n_h)
 
 
