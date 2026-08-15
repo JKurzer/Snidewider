@@ -34,3 +34,26 @@ spelling) we generate ourselves from dev/holdout-clean rows when needed.
 Paraphrased-*human* text (the false-positive trap) does not exist in RAID;
 if we want it, we synthesize it ourselves and keep it as a fourth eval
 category.
+
+## Beemo (newer-model + expert-edited slice)
+
+- Source: Toloka, 2025 — *"Beemo: Benchmark of Expert-edited
+  Machine-generated Outputs"*, HF `toloka/beemo`.
+- Local raw: `data/raw/beemo/train.parquet` (8.3M, 6.5K texts) +
+  `README.md` (licenses: MIT for the benchmark; human texts from No Robots
+  are CC-BY-NC-4.0 — research use only). Downloaded 2026-08-14.
+- Bodies: human-written / 10 open instruct LLMs (2024-era: Llama-3.1 class)
+  / expert-edited AI (the collaborative category RAID lacks) / LLM-polished
+  AI (GPT-4o, Llama-3.1-70B edits). Separate eval slice — never mixed into
+  RAID folds.
+
+## Selfgen (bleeding-edge slice)
+
+- `data/raw/selfgen/kimi-k3/`: 104 files (~3KB each, 13 per RAID domain),
+  generated 2026-08-14 by **Kimi K3** (this assistant's own backing model —
+  hunter and quarry in one repo) from dev-fold titles
+  (`data/derived/selfgen_titles.json`). Manifest: `manifest.csv`
+  (rebuild with `scripts/make_selfgen_manifest.py`).
+- Fold discipline: titles came from the dev fold, so this slice is a
+  dev-adjacent supplement. A holdout-level batch gets generated fresh when
+  needed, never from memory.
