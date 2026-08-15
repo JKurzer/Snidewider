@@ -18,7 +18,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
-from ai_text_detection import burst, qgram
+from ai_text_detection import burst, dct, qgram
 from ai_text_detection.exemplar import ExemplarBank, exemplar_vector
 from ai_text_detection.features import qgram_profile_features
 from ai_text_detection.features_relative import document_features_relative
@@ -64,9 +64,15 @@ def relative_vector(text: str) -> list[float]:
     return [feats[k] for k in sorted(feats)]  # stable order
 
 
+def dct_vector(text: str) -> list[float]:
+    feats = dct.dct_features(text)
+    return [feats[name] for name in dct.DCT_FEATURE_NAMES]
+
+
 DETECTORS = {
     "relative-burst": relative_vector,
     "qgram12": qgram12_vector,
+    "dct": dct_vector,
 }
 
 
@@ -99,7 +105,7 @@ def main() -> None:
 
     # --- featurize: burst detectors + exemplar profiles in one pass ---
     print("featurizing (relative + qgram12 + exemplar banks)...")
-    feats = {name: {"relative-burst": [], "qgram12": [], "exemplar": []} for name in buckets}
+    feats = {name: {det: [] for det in DETECTORS} | {"exemplar": []} for name in buckets}
     labels, in_bank = {}, {}
     for name, sub in buckets.items():
         labels[name] = (sub.model != "human").to_numpy(int)
@@ -115,8 +121,8 @@ def main() -> None:
     for name, sub in buckets.items():
         for text in sub.generation:
             text = str(text)
-            feats[name]["relative-burst"].append(relative_vector(text))
-            feats[name]["qgram12"].append(qgram12_vector(text))
+            for det, fn in DETECTORS.items():
+                feats[name][det].append(fn(text))
             feats[name]["exemplar"].append(
                 exemplar_vector(qgram.profile(text.encode("utf-8"), 3), bank_ai, bank_hu)
             )
