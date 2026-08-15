@@ -80,24 +80,40 @@ DCT_FEATURE_NAMES = (
 )
 
 
-def dct_features(text: str, k: int = K) -> dict[str, float]:
+def dct_features(
+    text: str,
+    k: int = K,
+    unit: str = "sentences",
+    window: int = 24,
+) -> dict[str, float]:
     """Document-level DCT features.
 
-    Adjacent-sentence cosine stats: do consecutive sentences sit unusually
-    close in DCT space (smooth = AI-ish?) — plus the order-energy ratio
-    ||c[1]||/||c[0]|| distribution. NaNs for single-sentence/OOV-only docs.
+    unit="sentences": split on [.!?] (paper-style sentence encoder).
+    unit="windows":   split into non-overlapping token windows of `window`
+    words (uniform sampling instead of sentence boundaries).
+    k = number of DCT coefficients kept (the "width").
+    NaNs for docs with fewer than two usable segments.
     """
-    sentences = [s for s in re.split(r"[.!?]+", text) if len(s.strip()) > 2]
+    if unit == "sentences":
+        segments = [s for s in re.split(r"[.!?]+", text) if len(s.strip()) > 2]
+    elif unit == "windows":
+        tokens = text.split()
+        segments = [
+            " ".join(tokens[i : i + window])
+            for i in range(0, len(tokens) - window + 1, window)
+        ]
+    else:
+        raise ValueError(f"unknown unit: {unit!r}")
     vectors = []
     energies = []
-    for sentence in sentences:
-        embedded = embed_sentence(sentence)
+    for segment in segments:
+        embedded = embed_sentence(segment)
         if embedded.shape[0] < 2:
             continue
         coeffs = dct_coefficients(embedded, k)
         vectors.append(coeffs.reshape(-1))
         base = float(np.linalg.norm(coeffs[0]))
-        energies.append(float(np.linalg.norm(coeffs[1]) / base) if base else 0.0)
+        energies.append(float(np.linalg.norm(coeffs[1]) / base) if base and k > 1 else 0.0)
     if len(vectors) < 2:
         return {name: math.nan for name in DCT_FEATURE_NAMES}
     adjacent = [_cosine(vectors[i], vectors[i + 1]) for i in range(len(vectors) - 1)]

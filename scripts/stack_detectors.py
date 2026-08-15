@@ -19,6 +19,7 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
 from ai_text_detection import burst, dct, qgram
+from ai_text_detection.evaldata import AI_PER_SOURCE, split_buckets
 from ai_text_detection.exemplar import ExemplarBank, exemplar_vector
 from ai_text_detection.features import qgram_profile_features
 from ai_text_detection.features_relative import document_features_relative
@@ -74,27 +75,6 @@ DETECTORS = {
     "qgram12": qgram12_vector,
     "dct": dct_vector,
 }
-
-
-def split_buckets(df: pd.DataFrame):
-    """Source-level A/B/C with AI rows capped per source."""
-    dev = df[df.fold == "dev"]
-    sources = np.asarray(dev.source_id.unique())  # numpy array: shuffles for real
-    rng = np.random.RandomState(41)
-    rng.shuffle(sources)
-    n = len(sources)
-    buckets = {
-        "A": set(sources[: n // 2]),
-        "B": set(sources[n // 2 : 3 * n // 4]),
-        "C": set(sources[3 * n // 4 :]),
-    }
-    out = {}
-    for name, ids in buckets.items():
-        sub = dev[dev.source_id.isin(ids)]
-        humans = sub[sub.model == "human"]
-        ai = sub[sub.model != "human"].groupby("source_id").head(AI_PER_SOURCE)
-        out[name] = pd.concat([humans, ai])
-    return out
 
 
 def main() -> None:
