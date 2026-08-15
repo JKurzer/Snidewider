@@ -1,4 +1,4 @@
-"""Build selfgen manifests: one row per generated file, joined to titles.
+r"""Build selfgen manifests: one row per generated file, joined to titles.
 
 Usage: .venv\Scripts\python scripts/make_selfgen_manifest.py
 """

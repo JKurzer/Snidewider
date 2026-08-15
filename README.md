@@ -29,6 +29,10 @@ aidt search "suspicious phrase" corpus.txt -q 5
 
 ## Principles
 
+0. **Bone stupid, computationally affordable.** Dense brute-force comparison is
+   normally "intractable" only because everyone else's primitives are thousands
+   of times slower. Ours are native. Stupid signals have no clever assumptions
+   for an attacker to exploit — stupid is harder to fool.
 1. **Reliability = calibrated error rates.** We report TPR at *fixed* FPR
    (default 1e-3) with confidence intervals. "97% accurate" on a balanced
    benchmark is a confession, not a result.
