@@ -6,8 +6,13 @@ RAID repo README, MAGE repo README). Question: is our 1e-3 floor ridiculous?
 ## RAID (Dugan et al., ACL 2024) — our primary benchmark
 
 - **Official metric: accuracy at fixed FPR = 5%.** `evaluate_cli.py
-  --target_fpr` default **0.05**. Paper: "accuracy at a fixed FPR of 5% ...
-  following the rise of this evaluation paradigm."
+  --target_fpr` default **0.05**. Paper §5.2: "accuracy at a fixed FPR of 5%
+  ... following the rise of this evaluation paradigm" (citing Hans/Binoculars,
+  Krishna, Soto). "Accuracy" = TPR at the calibrated threshold.
+- **Calibration is a ROC read**: per-detector threshold chosen by iterative
+  search on RAID's own human portion (Appendix C, eps=0.0005) — i.e. the
+  leaderboard convention recalibrates on eval data; our holdout ROC ladder
+  (scripts/exp/holdout_fpr_ladder.py) is methodologically identical.
 - SOTA at FPR=5% (Table 5, clean text): Binoculars 99.9, GPTZero 98.8,
   Originality 98.6, F-DetectGPT 98.6 accuracy. BUT collapse is one decoding
   change away: repetition-penalty sampling drops Binoculars to 0.6 (!) on
@@ -26,24 +31,34 @@ RAID repo README, MAGE repo README). Question: is our 1e-3 floor ridiculous?
 
 - Krishna et al. (DIPPER paraphrase eval): **TPR @ 1% FPR** — the adversarial
   paper convention. See docs/aigt-survey.md.
+- **Binoculars (Hans et al. 2024, arXiv:2401.12070) — the low-FPR king:
+  headline claim is >90% TPR at FPR = 0.01% (1e-4)**, zero-shot, no training
+  data (on its own eval mix, not RAID holdout). RAID Fig 4 confirms it is the
+  strongest low-FPR curve of their 12.
 - OpenAI AI Text Classifier (2023, discontinued): shipped at ~**9% FPR**,
   26% TPR. The cautionary tale at the loose end.
 - Commercial claims (Turnitin et al.): <1% claimed, unaudited.
 
 ## Verdict for us
 
-| operating point | who uses it | our status |
-|---|---|---|
-| 5% FPR | **RAID official**, field norm | not yet read on our holdout |
-| 1% FPR | adversarial-paper norm | not yet read on our holdout |
-| 0.1% (1e-3) | **nobody**; RAID: nearly nothing works there | our RULES default |
+| operating point | who uses it | exam ensemble (4-det HGB stack) | L0 champ (21-feat logistic) |
+|---|---|---|---|
+| 5% FPR | **RAID official**, field norm | 0.272 [0.265, 0.278] | 0.256 [0.250, 0.262] |
+| 1% FPR | adversarial-paper norm | 0.113 [0.109, 0.118] | 0.106 [0.102, 0.111] |
+| 0.1% (1e-3) | our RULES default | 0.033 [0.031, 0.036] | 0.029 [0.027, 0.032] |
+| 0.01% (1e-4) | Binoculars headline (>90% TPR, own data) | below resolution (k=1) | below resolution (k=1) |
 
-Our 1e-3 floor is ~50x stricter than the benchmark norm and makes us
-incomparable to every published number. As deployment philosophy it's
-defensible (false accusations are the catastrophic error); as a *measurement*
-default it starves statistics (k=0 at 750 humans/bucket) and hides us from
-the field. Resolution: 1e-3 needs >=10K humans — holdout has 11,371 (k=11),
-so the holdout CAN speak at 1e-3, dev buckets CANNOT.
+Holdout AUROC: ensemble 0.7113, L0 champ **0.7159**. The 21-feature linear
+model ties the full stack at every rung and edges it on AUROC — per RULES #6
+spirit, sparse has the stronger claim. (L0 champ selected on dev B @1e-2,
+read once on holdout; both caches now carry all 89 features.)
+
+Our 1e-3 floor is ~50x stricter than the benchmark norm, but NOT the
+extreme end: Binoculars publishes at 1e-4. The floor is defensible as
+deployment philosophy (false accusations are the catastrophic error); as a
+*measurement* default it starves statistics (k=0 at 750 humans/bucket).
+Resolution: 1e-3 needs >=10K humans — holdout has 11,371 (k=11), so the
+holdout CAN speak at 1e-3, dev buckets CANNOT.
 
 **Reporting ladder going forward: 5e-2 (field-comparable), 1e-2, 1e-3
 (stretch corner, holdout only). Never bare accuracy; always Wilson CIs.**
