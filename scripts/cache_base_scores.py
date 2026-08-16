@@ -9,40 +9,13 @@ import numpy as np
 import pandas as pd
 from sklearn.ensemble import HistGradientBoostingClassifier
 
-from ai_text_detection import burst, qgram
+from ai_text_detection import qgram
 from ai_text_detection.dct_shapes import dct_tail_vector
 from ai_text_detection.evaldata import split_buckets
 from ai_text_detection.exemplar import ExemplarBank, exemplar_vector
-from ai_text_detection.features import qgram_profile_features
-from ai_text_detection.features_relative import document_features_relative
+from ai_text_detection.feature_sets import qgram12_vector, relative_vector
 
 N_BANK = 150
-
-
-def relative_vector(text: str) -> list[float]:
-    feats = document_features_relative(text)
-    return [feats[k] for k in sorted(feats)]
-
-
-def qgram12_vector(text: str) -> list[float]:
-    short = burst.burst_features(text, window=64, gap=0, unit="bytes")
-    mid_ck2 = burst.burst_features(
-        text, window=150, samples=32, min_gap=50, unit="tokens", mode="random"
-    )
-    mid_qg = burst.burst_features(
-        text, window=150, samples=32, min_gap=50, unit="tokens", mode="random", metric="qgram"
-    )
-    q2 = qgram_profile_features(text, 2)
-    q3 = qgram_profile_features(text, 3)
-    prof5 = qgram.profile(text.encode("utf-8"), 5)
-    total5 = sum(c for _, c in prof5)
-    top10_share = sum(c for _, c in prof5[:10]) / total5 if total5 else float("nan")
-    return [
-        short["mean"], short["stdev"], mid_ck2["mean"], mid_ck2["stdev"],
-        mid_qg["mean"], mid_qg["stdev"], q2["qgram_entropy"], q3["qgram_entropy"],
-        q3["qgram_distinct_ratio"], q3["qgram_repeat_frac"], q3["qgram_max_share"],
-        top10_share,
-    ]
 
 
 def main() -> None:
