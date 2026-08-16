@@ -41,3 +41,16 @@ def test_continuous_scores_behave_normally():
     res = tpr_at_fpr(ai, humans, fpr=0.01)
     assert res["fpr_achieved"] <= 0.01
     assert res["tpr"] == 0.5  # only the 0.995 half clears the bar
+
+
+from ai_text_detection.metrics import min_fpr_at_full_tpr, zero_fpr_tpr
+
+
+def test_zero_fpr_gate():
+    res = zero_fpr_tpr([0.9, 1.5, 2.0], [0.1, 0.8, 1.0])
+    assert res["tpr"] == 2 / 3  # 1.5 and 2.0 live above the human max (1.0)
+
+
+def test_full_tpr_gate():
+    res = min_fpr_at_full_tpr([0.5, 0.9, 2.0], [0.1, 0.6, 0.7])
+    assert res["fpr"] == 2 / 3  # 0.6 and 0.7 sit above the AI min (0.5)

@@ -65,3 +65,33 @@ def tpr_at_fpr(
         "n_ai": float(len(ai_scores)),
         "n_human": float(len(human_scores)),
     }
+
+
+def zero_fpr_tpr(ai_scores: list[float], human_scores: list[float]) -> dict[str, float]:
+    """One-sided gate probe (no-FP): TPR strictly above the human maximum.
+
+    Fraction of AI docs living in the region no human ever reaches.
+    Scores must be oriented (higher = more AI-like) by the caller.
+    """
+    if not ai_scores or not human_scores:
+        raise ValueError("both classes must be non-empty")
+    bar = math.nextafter(max(human_scores), math.inf)
+    hits = sum(1 for s in ai_scores if s >= bar)
+    lo, hi = wilson_ci(hits, len(ai_scores))
+    return {"threshold": bar, "tpr": hits / len(ai_scores), "tpr_lo": lo, "tpr_hi": hi,
+            "n_ai": float(len(ai_scores)), "n_human": float(len(human_scores))}
+
+
+def min_fpr_at_full_tpr(ai_scores: list[float], human_scores: list[float]) -> dict[str, float]:
+    """One-sided gate probe (no-FN): FPR paid to catch EVERY AI doc.
+
+    Threshold at the AI minimum; the price is the human mass above it.
+    Scores must be oriented (higher = more AI-like) by the caller.
+    """
+    if not ai_scores or not human_scores:
+        raise ValueError("both classes must be non-empty")
+    bar = min(ai_scores)
+    fp = sum(1 for s in human_scores if s >= bar)
+    lo, hi = wilson_ci(fp, len(human_scores))
+    return {"threshold": bar, "fpr": fp / len(human_scores), "fpr_lo": lo, "fpr_hi": hi,
+            "n_ai": float(len(ai_scores)), "n_human": float(len(human_scores))}
