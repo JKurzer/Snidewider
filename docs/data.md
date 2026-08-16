@@ -17,6 +17,10 @@
 
 - Unit of splitting is the **source_id**, never the row: every generation of
   a source stays in that source's fold. No near-duplicate leakage.
+- **AI rows are sampled 2 per source, seeded-uniform over variant slots**
+  (evaldata._ai_sample). The parquet stores generations model-ordered, so a
+  naive head(2) silently picks llama-chat every time — that bug fabricated a
+  uniform ~2.8x dev→holdout "drift" tax (fleet_holdout_audit, 2026-08-16).
 - `scripts/make_splits.py` → `data/derived/raid_splits.parquet`, deterministic
   (sha256-salted ordering), default 2,000 sources to **dev**, ~13K to
   **holdout**.

@@ -41,17 +41,20 @@ RAID repo README, MAGE repo README). Question: is our 1e-3 floor ridiculous?
 
 ## Verdict for us
 
-| operating point | who uses it | exam ensemble (4-det HGB stack) | L0 champ (21-feat logistic) |
-|---|---|---|---|
-| 5% FPR | **RAID official**, field norm | 0.272 [0.265, 0.278] | 0.256 [0.250, 0.262] |
-| 1% FPR | adversarial-paper norm | 0.113 [0.109, 0.118] | 0.106 [0.102, 0.111] |
-| 0.1% (1e-3) | our RULES default | 0.033 [0.031, 0.036] | 0.029 [0.027, 0.032] |
-| 0.01% (1e-4) | Binoculars headline (>90% TPR, own data) | below resolution (k=1) | below resolution (k=1) |
+| operating point | who uses it | exam ensemble (pre-fix) | **ensemble (post-stratify)** | L0 champ |
+|---|---|---|---|---|
+| 5% FPR | **RAID official**, field norm | 0.272 | **0.430** [0.423, 0.437] | 0.252 |
+| 1% FPR | adversarial-paper norm | 0.113 | **0.217** [0.211, 0.223] | 0.107 |
+| 0.1% (1e-3) | our RULES default | 0.033 | 0.015 [0.013, 0.016] | 0.007 |
+| 0.01% (1e-4) | Binoculars headline (>90% TPR, own data) | below resolution (k=1) | below resolution (k=1) | below resolution (k=1) |
 
-Holdout AUROC: ensemble 0.7113, L0 champ **0.7159**. The 21-feature linear
-model ties the full stack at every rung and edges it on AUROC — per RULES #6
-spirit, sparse has the stronger claim. (L0 champ selected on dev B @1e-2,
-read once on holdout; both caches now carry all 89 features.)
+**2026-08-16 protocol fix (fleet_holdout_audit): dev buckets had been
+100% llama-chat (parquet model-ordering + head(2)); the "2.8x drift tax" was
+this artifact. After seeded-uniform AI slot sampling: holdout AUROC
+0.7113 -> 0.8203, TPR@1e-2 0.113 -> 0.217.** The mix-trained ensemble buys
+mid-tail at the cost of deep tail (1e-3: 0.033 -> 0.015); the fleet-A2
+long-doc stat (0.200 @1e-3) remains the deep-tail record. L0 champ is
+mix-robust already (0.7084 AUROC post-fix, selected on stratified B).
 
 Our 1e-3 floor is ~50x stricter than the benchmark norm, but NOT the
 extreme end: Binoculars publishes at 1e-4. The floor is defensible as
