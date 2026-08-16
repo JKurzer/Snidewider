@@ -1,4 +1,6 @@
-# ai-text-detection
+# Snidewider
+
+*A thief-seeking missile for machine-generated text.*
 
 Detecting AI-generated text **at scale** and **reliably** — which mostly means:
 resisting the urge to throw a transformer at everything before the fast baselines
