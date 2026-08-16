@@ -12,7 +12,7 @@ from sklearn.ensemble import HistGradientBoostingClassifier
 from ai_text_detection import qgram
 from ai_text_detection.dct_shapes import dct_tail_vector
 from ai_text_detection.evaldata import split_buckets
-from ai_text_detection.exemplar import ExemplarBank, exemplar_vector
+from ai_text_detection.exemplar import ExemplarBank, bank_self_indices, exemplar_vector
 from ai_text_detection.feature_sets import qgram12_vector, relative_vector
 
 N_BANK = 150
@@ -30,18 +30,32 @@ def main() -> None:
     fns = {
         "relative-burst": relative_vector,
         "qgram12": qgram12_vector,
-        "exemplar": lambda t: exemplar_vector(qgram.profile(t.encode("utf-8"), 3), bank_ai, bank_hu),
         "dct-nobase": dct_tail_vector,
     }
+    # leave-one-out for bucket A rows that sit inside the exemplar banks
+    ai_self, hu_self = bank_self_indices([str(m) for m in buckets["A"].model], N_BANK)
+
+    def rows_for(det: str, bucket: str) -> np.ndarray:
+        sub = buckets[bucket]
+        if det == "exemplar":
+            if bucket == "A":
+                return np.array([exemplar_vector(qgram.profile(str(t).encode("utf-8"), 3),
+                                                 bank_ai, bank_hu, ai_self[i], hu_self[i])
+                                 for i, t in enumerate(sub.generation)], dtype=float)
+            return np.array([exemplar_vector(qgram.profile(str(t).encode("utf-8"), 3),
+                                             bank_ai, bank_hu)
+                             for t in sub.generation], dtype=float)
+        return np.array([fns[det](str(t)) for t in sub.generation], dtype=float)
+
     store = {f"labels_{b}": labels[b] for b in buckets}
-    for det, fn in fns.items():
-        Xa = np.array([fn(str(t)) for t in buckets["A"].generation], dtype=float)
+    for det in (*fns, "exemplar"):
+        Xa = rows_for(det, "A")
         col_means = np.nanmean(Xa, axis=0)
         bad = np.where(~np.isfinite(Xa))
         Xa[bad] = np.take(col_means, bad[1])
         model = HistGradientBoostingClassifier(random_state=7).fit(Xa, labels["A"])
         for bucket in ("A", "B", "C"):
-            X = np.array([fn(str(t)) for t in buckets[bucket].generation], dtype=float)
+            X = rows_for(det, bucket)
             bad = np.where(~np.isfinite(X))
             X[bad] = np.take(col_means, bad[1])
             store[f"{det}_{bucket}"] = model.predict_proba(X)[:, 1]

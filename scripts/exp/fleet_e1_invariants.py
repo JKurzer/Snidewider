@@ -69,10 +69,11 @@ def main() -> None:
 
     print("== 4. FAMS slice alignment vs cache names ==")
     names = list(np.load("data/derived/full_features.npz")["feature_names"])
-    fams = {"rel": (0, 8), "qg": (8, 20), "ex": (20, 31), "dct": (31, 81), "shape": (81, 89)}
+    fams = {"rel_": (0, 8), "qg_": (8, 20), "ex_": (20, 31), "dct_": (31, 81),
+            "shape_": (81, 89), "stat_": (89, 111), "cov": (111, 120)}
     for fam, (lo, hi) in fams.items():
         block = names[lo:hi]
-        check(f"slice {lo}:{hi} == {fam}_*", all(n.startswith(fam + "_") for n in block),
+        check(f"slice {lo}:{hi} == {fam}*", all(n.startswith(fam) for n in block),
               f"({len(block)} cols)")
 
     print("== 5. base_scores orientation on C ==")

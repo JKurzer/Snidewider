@@ -36,11 +36,12 @@ def main() -> None:
     bank_ai = ExemplarBank.from_texts([str(t) for t in a[a.model != "human"].generation[:N_BANK]])
     bank_hu = ExemplarBank.from_texts([str(t) for t in a[a.model == "human"].generation[:N_BANK]])
 
-    def featurize(text: str) -> list[float]:
+    def featurize(text: str, ai_self=None, hu_self=None) -> list[float]:
         return (
             relative_vector(text)
             + qgram12_vector(text)
-            + exemplar_vector(qgram.profile(text.encode("utf-8"), 3), bank_ai, bank_hu)
+            + exemplar_vector(qgram.profile(text.encode("utf-8"), 3), bank_ai, bank_hu,
+                              ai_self, hu_self)
             + dct_tail_vector(text)
         )
 
@@ -48,7 +49,12 @@ def main() -> None:
     fams = {"relative-burst": (0, 8), "qgram12": (8, 20), "exemplar": (20, 31), "dct-nobase": (31, 81)}
     X = {}
     for name, sub in buckets.items():
-        rows = np.array([featurize(str(t)) for t in sub.generation], dtype=float)
+        ai_self = hu_self = [None] * len(sub)
+        if name == "A":  # leave-one-out for rows inside the exemplar banks
+            from ai_text_detection.exemplar import bank_self_indices
+            ai_self, hu_self = bank_self_indices([str(m) for m in sub.model], N_BANK)
+        rows = np.array([featurize(str(t), ai_self[i], hu_self[i])
+                         for i, t in enumerate(sub.generation)], dtype=float)
         col_means = np.nanmean(rows, axis=0)
         bad = np.where(~np.isfinite(rows))
         rows[bad] = np.take(col_means, bad[1])

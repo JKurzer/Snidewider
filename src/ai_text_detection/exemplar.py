@@ -42,6 +42,29 @@ def profile_total(profile: qgram.Profile) -> int:
     return sum(c for _, c in profile)
 
 
+def bank_self_indices(models: list[str], n_bank: int) -> tuple[list[int | None], list[int | None]]:
+    """Per-row (ai_self_index, hu_self_index) for banks built from the first
+    n_bank AI/human rows of the same frame, in frame order.
+
+    NOT optional for any row inside a bank: without it the row matches
+    itself (distance 0) and every min/p10 stat is skewed — train/serve skew
+    (fleet F3 crater; cache builders pre-2026-08-16 shipped this bug).
+    """
+    ai_seen = hu_seen = 0
+    ai_idx: list[int | None] = []
+    hu_idx: list[int | None] = []
+    for m in models:
+        if m == "human":
+            hu_idx.append(hu_seen if hu_seen < n_bank else None)
+            ai_idx.append(None)
+            hu_seen += 1
+        else:
+            ai_idx.append(ai_seen if ai_seen < n_bank else None)
+            hu_idx.append(None)
+            ai_seen += 1
+    return ai_idx, hu_idx
+
+
 @dataclass
 class ExemplarBank:
     """Cached exemplar profiles + precomputed totals.

@@ -41,12 +41,20 @@ RAID repo README, MAGE repo README). Question: is our 1e-3 floor ridiculous?
 
 ## Verdict for us
 
-| operating point | who uses it | exam ensemble (pre-fix) | **ensemble (post-stratify)** | L0 champ |
-|---|---|---|---|---|
-| 5% FPR | **RAID official**, field norm | 0.272 | **0.430** [0.423, 0.437] | 0.252 |
-| 1% FPR | adversarial-paper norm | 0.113 | **0.217** [0.211, 0.223] | 0.107 |
-| 0.1% (1e-3) | our RULES default | 0.033 | 0.015 [0.013, 0.016] | 0.007 |
-| 0.01% (1e-4) | Binoculars headline (>90% TPR, own data) | below resolution (k=1) | below resolution (k=1) | below resolution (k=1) |
+| operating point | who uses it | ensemble (pre-fix) | ensemble (honest feats) | **L0 champ (120-feat panel)** |
+|---|---|---|---|---|---|
+| 5% FPR | **RAID official**, field norm | 0.272 | 0.260 | **0.702** [0.696, 0.708] |
+| 1% FPR | adversarial-paper norm | 0.113 | 0.121 | **0.536** [0.530, 0.543] |
+| 0.1% (1e-3) | our RULES default | 0.033 | 0.047 | **0.124** [0.119, 0.129] |
+| 0.01% (1e-4) | Binoculars headline (>90% TPR, own data) | below resolution (k=1) | below resolution | below resolution (k=1) |
+
+Holdout AUROC: ensemble 0.7861, **L0 champ 0.9103**. The 120-feat L0 champion
+is the first model whose dev->holdout tax is ~1.1x instead of ~2.8x (dev C
+0.919/0.597 -> holdout 0.910/0.536). Champion = 25 feats spanning every
+family: qg_mid, ex_contrast, ALL 9 coverage, 4 stats, shape, dct_bands, rel.
+CAUTION on the ensemble numbers: the 0.8203/0.217 interim read was inflated
+by exemplar bank contamination (no leave-one-out); the honest-feats ensemble
+drops to 0.7861/0.121.
 
 **2026-08-16 protocol fix (fleet_holdout_audit): dev buckets had been
 100% llama-chat (parquet model-ordering + head(2)); the "2.8x tax" was

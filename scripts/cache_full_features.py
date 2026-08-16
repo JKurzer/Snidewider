@@ -11,7 +11,12 @@ import pandas as pd
 from ai_text_detection import qgram
 from ai_text_detection.dct_shapes import dct_tail_features
 from ai_text_detection.evaldata import split_buckets
-from ai_text_detection.exemplar import EXEMPLAR_FEATURE_NAMES, ExemplarBank, exemplar_vector
+from ai_text_detection.exemplar import (
+    EXEMPLAR_FEATURE_NAMES,
+    ExemplarBank,
+    bank_self_indices,
+    exemplar_vector,
+)
 from ai_text_detection.feature_sets import QGRAM12_NAMES, qgram12_vector, relative_vector
 from ai_text_detection.features_relative import FEATURE_NAMES_RELATIVE
 
@@ -33,12 +38,17 @@ def main() -> None:
     )
     store: dict[str, np.ndarray] = {}
     for bucket, sub in buckets.items():
+        # leave-one-out for bucket A rows that sit inside the exemplar banks
+        ai_self = hu_self = [None] * len(sub)
+        if bucket == "A":
+            ai_self, hu_self = bank_self_indices([str(m) for m in sub.model], N_BANK)
         rows = []
-        for text in sub.generation:
+        for i, text in enumerate(sub.generation):
             text = str(text)
             rel = relative_vector(text)
             qg = qgram12_vector(text)
-            ex = exemplar_vector(qgram.profile(text.encode("utf-8"), 3), bank_ai, bank_hu)
+            ex = exemplar_vector(qgram.profile(text.encode("utf-8"), 3), bank_ai, bank_hu,
+                                 ai_self[i], hu_self[i])
             tail = dct_tail_features(text)
             rows.append(rel + qg + ex + [tail[k] for k in sorted(tail)])
         store[f"X_{bucket}"] = np.array(rows, dtype=float)
