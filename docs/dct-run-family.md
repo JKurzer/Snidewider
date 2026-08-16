@@ -55,3 +55,16 @@ on short docs needs the panel to own short docs entirely.
 Verdict: promising enough to keep on the board; unproven until extreme-point
 measurements happen. When attacked, lead with min/max statistics and exact
 zero-FPR evaluation on dev, then holdout confirmation (once, clean).
+
+## Addendum (G5 jumble attack + CK2 decomposition, 2026-08-15)
+
+- Content blindness verified: char-within-token jumble leaves the symbol
+  stream byte-identical (1000/1000). The map is a pure function of token
+  lengths.
+- CK2 on these streams is mostly a MULTISET comparison: pct_ordered ~0.95
+  under both jumble types (coarse 4-bit symbols => skewed distribution =>
+  cheap nearest-neighbor matching blunts the order channel). Distances ride
+  the pct_similar_chars channel (0.30 token-jumble, 0.18 char-global).
+  Order-sensitive variants would need finer quantization.
+- w32 stepped stat on dev docs: finite for 4% of docs, ALL human => at w32
+  the stat is a doc-length proxy, not rhythm. Use w8 or stream-relative windows.
