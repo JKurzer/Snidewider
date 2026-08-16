@@ -1,11 +1,13 @@
 # Holdout breakout: per-feature drift + frozen ensemble
 
-Frozen equal-weight ensemble (no learning): AUROC 0.563, FPR 0.00317, TPR 0.0115
+Frozen equal-weight ensemble (no learning): AUROC 0.556, FPR 0.00536, TPR 0.0144
 
 | feature | auroc_devC | auroc_holdout | drift | fpr_holdout | tpr_holdout |
 |---|---|---|---|---|---|
 | qg_mid_qgram_mean | nan | 0.879 | +nan | 0.01304 | 0.2595 |
+| shape_dct_run_rand_mean | nan | 0.789 | +nan | 0.01390 | 0.1538 |
 | qg_mid_ck2_mean | nan | 0.765 | +nan | 0.00821 | 0.2482 |
+| shape_dct_run_step_stdev | 0.236 | 0.707 | +0.471 | 0.00000 | 0.0000 |
 | ex_contrast_min | 0.308 | 0.681 | +0.373 | 0.00150 | 0.0360 |
 | ex_contrast_p10 | 0.213 | 0.638 | +0.425 | 0.00026 | 0.0326 |
 | dct_bands_r2_std | 0.317 | 0.636 | +0.319 | 0.00009 | 0.0009 |
@@ -49,6 +51,8 @@ Frozen equal-weight ensemble (no learning): AUROC 0.563, FPR 0.00317, TPR 0.0115
 | dct_bands_c1_std | 0.474 | 0.530 | +0.056 | 0.00321 | 0.0138 |
 | dct_acosq_p90 | 0.539 | 0.528 | -0.012 | 0.00036 | 0.0349 |
 | dct_paircos_p95 | 0.531 | 0.527 | -0.005 | 0.00126 | 0.0471 |
+| shape_skeleton_rand_mean | 0.454 | 0.521 | +0.067 | 0.00670 | 0.0133 |
+| shape_skeleton_step_mean | 0.533 | 0.520 | -0.014 | 0.00246 | 0.0042 |
 | dct_bands_c2_mean | 0.470 | 0.518 | +0.048 | 0.00098 | 0.0068 |
 | dct_normpct_p90 | 0.467 | 0.518 | +0.051 | 0.00018 | 0.0033 |
 | qg_short_ck2_stdev | 0.477 | 0.518 | +0.041 | 0.00651 | 0.0368 |
@@ -56,19 +60,22 @@ Frozen equal-weight ensemble (no learning): AUROC 0.563, FPR 0.00317, TPR 0.0115
 | dct_bands_c1_mean | 0.520 | 0.515 | -0.005 | 0.00098 | 0.0188 |
 | dct_acosq_p95 | 0.533 | 0.515 | -0.018 | 0.00054 | 0.0354 |
 | dct_bands_c4_mean | 0.468 | 0.512 | +0.044 | 0.00205 | 0.0078 |
+| shape_skeleton_step_stdev | 0.475 | 0.510 | +0.036 | 0.00352 | 0.0221 |
 | ex_ai_min | 0.331 | 0.510 | +0.180 | 0.00114 | 0.0137 |
 | rel_short_range_mean | 0.474 | 0.509 | +0.035 | 0.00536 | 0.0558 |
+| shape_dct_run_step_mean | 0.448 | 0.509 | +0.061 | 0.00767 | 0.0672 |
 | dct_paircos_gap | 0.500 | 0.505 | +0.005 | 0.00108 | 0.0007 |
 | rel_short_range_stdev | 0.477 | 0.503 | +0.025 | 0.00422 | 0.0217 |
 | ex_ai_p10 | 0.318 | 0.499 | +0.181 | 0.00237 | 0.0138 |
 | dct_bands_c3_mean | 0.496 | 0.499 | +0.003 | 0.00473 | 0.0135 |
+| shape_skeleton_rand_stdev | 0.474 | 0.495 | +0.021 | 0.00229 | 0.0045 |
 | ex_ai_mean | 0.306 | 0.495 | +0.190 | 0.00237 | 0.0155 |
 | dct_drift_norm | 0.539 | 0.493 | -0.046 | 0.00388 | 0.0020 |
-| qg_q3_distinct_ratio | 0.393 | 0.490 | +0.097 | 0.00378 | 0.0600 |
 | rel_qgram_distinct_ratio | 0.393 | 0.490 | +0.097 | 0.00378 | 0.0600 |
+| qg_q3_distinct_ratio | 0.393 | 0.490 | +0.097 | 0.00378 | 0.0600 |
 | rel_midrange_mean | 0.361 | 0.489 | +0.128 | 0.00141 | 0.0486 |
-| rel_qgram_repeat_frac | 0.595 | 0.487 | -0.108 | 0.00361 | 0.0373 |
 | qg_q3_repeat_frac | 0.595 | 0.487 | -0.108 | 0.00361 | 0.0373 |
+| rel_qgram_repeat_frac | 0.595 | 0.487 | -0.108 | 0.00361 | 0.0373 |
 | ex_hu_mean | 0.345 | 0.482 | +0.137 | 0.00026 | 0.0009 |
 | dct_drift_ratio | 0.474 | 0.482 | +0.008 | 0.00117 | 0.0013 |
 | ex_hu_mean_raw | 0.593 | 0.476 | -0.116 | 0.00299 | 0.0000 |
@@ -85,3 +92,4 @@ Frozen equal-weight ensemble (no learning): AUROC 0.563, FPR 0.00317, TPR 0.0115
 | qg_q5_top10_share | 0.455 | 0.397 | -0.058 | 0.00563 | 0.0000 |
 | qg_mid_ck2_stdev | nan | 0.287 | +nan | 0.00097 | 0.0048 |
 | qg_mid_qgram_stdev | nan | 0.276 | +nan | 0.00676 | 0.0258 |
+| shape_dct_run_rand_stdev | nan | 0.178 | +nan | 0.00764 | 0.0017 |

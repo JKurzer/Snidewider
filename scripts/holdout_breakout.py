@@ -103,11 +103,12 @@ def main() -> None:
         out = []
         for i in range(X.shape[1]):
             col = X[:, i]
-            roc_c = auroc(
-                list(Xc[yc == 1, i][np.isfinite(Xc[yc == 1, i])]),
-                list(Xc[yc == 0, i][np.isfinite(Xc[yc == 0, i])]),
-            )
-            sign = 1.0 if roc_c >= 0.5 else -1.0
+            hu_c = Xc[yc == 0, i]
+            ai_c = Xc[yc == 1, i]
+            hu_ok, ai_ok = hu_c[np.isfinite(hu_c)], ai_c[np.isfinite(ai_c)]
+            if min(len(hu_ok), len(ai_ok)) < 50:
+                continue  # orientation unmeasurable on C: excluded from the mean
+            sign = 1.0 if auroc(list(ai_ok), list(hu_ok)) >= 0.5 else -1.0
             out.append(np.clip((col - lo[i]) / span[i], 0, 1) * sign)
         M = np.array(out).T
         return np.nanmean(M, axis=1)
