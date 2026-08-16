@@ -80,6 +80,37 @@ DCT_FEATURE_NAMES = (
 )
 
 
+def features_from_embeddings(embedded_segments: list[np.ndarray], k: int = K) -> dict[str, float]:
+    """The 4 stock doc features from pre-embedded segments (N x d each).
+
+    Adjacent-segment cosine stats (structural burstiness) + the order-energy
+    ratio ||c[1]|| / ||c[0]||. NaNs for fewer than two usable segments.
+    """
+    vectors = []
+    energies = []
+    for embedded in embedded_segments:
+        if embedded.shape[0] < 2:
+            continue
+        coeffs = dct_coefficients(embedded, k)
+        vectors.append(coeffs.reshape(-1))
+        base = float(np.linalg.norm(coeffs[0]))
+        energies.append(float(np.linalg.norm(coeffs[1]) / base) if base and k > 1 else 0.0)
+    if len(vectors) < 2:
+        return {name: math.nan for name in DCT_FEATURE_NAMES}
+    adjacent = [_cosine(vectors[i], vectors[i + 1]) for i in range(len(vectors) - 1)]
+    return {
+        "dct_adjacent_mean": float(np.mean(adjacent)),
+        "dct_adjacent_stdev": float(np.std(adjacent)),
+        "dct_order_energy_mean": float(np.mean(energies)),
+        "dct_order_energy_stdev": float(np.std(energies)),
+    }
+
+
+def features_from_segments(segments: list[str], k: int = K) -> dict[str, float]:
+    """The 4 stock doc features from pre-split text segments."""
+    return features_from_embeddings([embed_sentence(s) for s in segments], k)
+
+
 def dct_features(
     text: str,
     k: int = K,
@@ -104,22 +135,4 @@ def dct_features(
         ]
     else:
         raise ValueError(f"unknown unit: {unit!r}")
-    vectors = []
-    energies = []
-    for segment in segments:
-        embedded = embed_sentence(segment)
-        if embedded.shape[0] < 2:
-            continue
-        coeffs = dct_coefficients(embedded, k)
-        vectors.append(coeffs.reshape(-1))
-        base = float(np.linalg.norm(coeffs[0]))
-        energies.append(float(np.linalg.norm(coeffs[1]) / base) if base and k > 1 else 0.0)
-    if len(vectors) < 2:
-        return {name: math.nan for name in DCT_FEATURE_NAMES}
-    adjacent = [_cosine(vectors[i], vectors[i + 1]) for i in range(len(vectors) - 1)]
-    return {
-        "dct_adjacent_mean": float(np.mean(adjacent)),
-        "dct_adjacent_stdev": float(np.std(adjacent)),
-        "dct_order_energy_mean": float(np.mean(energies)),
-        "dct_order_energy_stdev": float(np.std(energies)),
-    }
+    return features_from_segments(segments, k)

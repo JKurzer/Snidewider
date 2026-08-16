@@ -10,6 +10,7 @@ import pandas as pd
 from sklearn.ensemble import HistGradientBoostingClassifier
 
 from ai_text_detection import burst, qgram
+from ai_text_detection.dct_shapes import dct_tail_vector
 from ai_text_detection.evaldata import split_buckets
 from ai_text_detection.exemplar import ExemplarBank, exemplar_vector
 from ai_text_detection.features import qgram_profile_features
@@ -57,6 +58,7 @@ def main() -> None:
         "relative-burst": relative_vector,
         "qgram12": qgram12_vector,
         "exemplar": lambda t: exemplar_vector(qgram.profile(t.encode("utf-8"), 3), bank_ai, bank_hu),
+        "dct-nobase": dct_tail_vector,
     }
     store = {f"labels_{b}": labels[b] for b in buckets}
     for det, fn in fns.items():

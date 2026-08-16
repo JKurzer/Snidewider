@@ -49,3 +49,28 @@ def test_determinism_and_feature_keys():
 def test_single_sentence_doc_is_nan():
     feats = dct.dct_features("The cat sat.")
     assert math.isnan(feats["dct_adjacent_mean"])
+
+
+def test_features_from_segments_matches_dct_features():
+    text = "The cat sat on a mat. A dog ran fast. The mat was warm."
+    via_segments = dct.features_from_segments(["the cat sat", "a dog ran"], k=2)
+    via_mats = dct.features_from_embeddings(
+        [dct.embed_sentence("the cat sat"), dct.embed_sentence("a dog ran")], k=2
+    )
+    assert via_segments == via_mats
+    assert set(via_segments) == set(dct.DCT_FEATURE_NAMES)
+
+
+def test_windows_unit_matches_manual_cut():
+    text = "the cat sat on a mat the dog ran fast the cat napped"
+    auto = dct.dct_features(text, k=2, unit="windows", window=3)
+    tokens = text.split()
+    manual = dct.features_from_segments(
+        [" ".join(tokens[i : i + 3]) for i in range(0, len(tokens) - 2, 3)], k=2
+    )
+    assert auto == manual
+
+
+def test_unknown_unit_raises():
+    with pytest.raises(ValueError):
+        dct.dct_features("the cat sat. the dog ran.", unit="paragraphs")
