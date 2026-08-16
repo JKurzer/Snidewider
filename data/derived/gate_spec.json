@@ -1,0 +1,74 @@
+{
+  "meta": {
+    "built_from": "raid dev A+B SHORT cohort",
+    "fleet": "g1-g3 consolidation"
+  },
+  "components": [
+    {
+      "name": "r2_l4_<bound method Series.mode of run                 2\nlevels              4\nwindow             16\nsamples             8\nmode             step\nstat              max\ndirection         low\ncoverage     0.974631\nauroc        0.549269\nzfpr_tpr     0.024938\nhu_max      -0.332031\nName: 212, dtype: object>_w16_max_low",
+      "run": 2,
+      "levels": 4,
+      "window": 16,
+      "samples": 8,
+      "mode": "step",
+      "stat": "max",
+      "direction": "low",
+      "threshold": -0.33203124999999994
+    },
+    {
+      "name": "r2_l4_<bound method Series.mode of run                 2\nlevels              4\nwindow             16\nsamples             8\nmode             rand\nstat             mean\ndirection         low\ncoverage     0.930898\nauroc        0.533156\nzfpr_tpr      0.02351\nhu_max      -0.290466\nName: 202, dtype: object>_w16_mean_low",
+      "run": 2,
+      "levels": 4,
+      "window": 16,
+      "samples": 8,
+      "mode": "rand",
+      "stat": "mean",
+      "direction": "low",
+      "threshold": -0.29046630859374994
+    },
+    {
+      "name": "r3_l4_<bound method Series.mode of run                 3\nlevels              4\nwindow              8\nsamples            16\nmode             rand\nstat             mean\ndirection         low\ncoverage      0.96513\nauroc         0.53106\nzfpr_tpr     0.021352\nhu_max       -0.36438\nName: 422, dtype: object>_w8_mean_low",
+      "run": 3,
+      "levels": 4,
+      "window": 8,
+      "samples": 16,
+      "mode": "rand",
+      "stat": "mean",
+      "direction": "low",
+      "threshold": -0.36437988281249994
+    },
+    {
+      "name": "r2_l2_<bound method Series.mode of run                 2\nlevels              2\nwindow             16\nsamples            16\nmode             rand\nstat             mean\ndirection         low\ncoverage     0.930898\nauroc        0.546087\nzfpr_tpr      0.02023\nhu_max      -0.207352\nName: 102, dtype: object>_w16_mean_low",
+      "run": 2,
+      "levels": 2,
+      "window": 16,
+      "samples": 16,
+      "mode": "rand",
+      "stat": "mean",
+      "direction": "low",
+      "threshold": -0.20735168457031247
+    },
+    {
+      "name": "r2_l4_<bound method Series.mode of run                 2\nlevels              4\nwindow             16\nsamples            16\nmode             rand\nstat              min\ndirection         low\ncoverage     0.930898\nauroc        0.558178\nzfpr_tpr      0.02023\nhu_max      -0.085938\nName: 230, dtype: object>_w16_min_low",
+      "run": 2,
+      "levels": 4,
+      "window": 16,
+      "samples": 16,
+      "mode": "rand",
+      "stat": "min",
+      "direction": "low",
+      "threshold": -0.08593749999999999
+    },
+    {
+      "name": "r3_l4_<bound method Series.mode of run                 3\nlevels              4\nwindow              8\nsamples            16\nmode             rand\nstat              max\ndirection         low\ncoverage      0.96513\nauroc        0.545437\nzfpr_tpr     0.019827\nhu_max      -0.515625\nName: 434, dtype: object>_w8_max_low",
+      "run": 3,
+      "levels": 4,
+      "window": 8,
+      "samples": 16,
+      "mode": "rand",
+      "stat": "max",
+      "direction": "low",
+      "threshold": -0.5156249999999999
+    }
+  ]
+}
