@@ -4,10 +4,12 @@ Appends 22 stat_* + 9 cov* columns. Idempotent: re-running replaces the
 stat_/cov columns rather than duplicating. Layout stays: base 0:81,
 shape 81:89, stats 89:111, coverage 111:120.
 
-Coverage references are pooled bucket-A gram counters (coverage.py). Bucket A
-rows are scored with SOURCE-level leave-one-out (every row sharing the
-source excluded from the refs) — fleet F3 v1's crater says this is not
-optional. B/C/holdout rows are never in the refs: plain membership.
+Coverage references are pooled gram counters built CROSS-BUCKET (fleet G
+probe: A rows scored vs A-built refs are in-fold inflated even with
+doc/source LOU — the reference bucket itself is the skew; hgb_b-on-A read
+0.999 vs hgb_a-on-C 0.910). So: A rows score against refs from B+C,
+B/C/holdout rows against refs from A. Every row faces a foreign reference;
+no leave-one-out needed at all.
 
 Usage: .venv\\Scripts\\python scripts\\wire_stats_features.py
 """
@@ -71,15 +73,20 @@ def main() -> None:
     df = pd.read_parquet("data/derived/raid_splits.parquet")
     buckets = split_buckets(df)
     a = buckets["A"]
-    ref_hu = {q: build_reference(a[a.model == "human"].generation, q) for q in QS}
-    ref_ai = {q: build_reference(a[a.model != "human"].generation, q) for q in QS}
-    print("refs built", flush=True)
+    # cross-bucket references: nothing scores against its own fold's grams
+    ref_a = ({q: build_reference(a[a.model == "human"].generation, q) for q in QS},
+             {q: build_reference(a[a.model != "human"].generation, q) for q in QS})
+    bc = pd.concat([buckets["B"], buckets["C"]])
+    ref_bc = ({q: build_reference(bc[bc.model == "human"].generation, q) for q in QS},
+              {q: build_reference(bc[bc.model != "human"].generation, q) for q in QS})
+    print("refs built (cross-bucket)", flush=True)
 
     dev_new = {}
     for b in "ABC":
+        rhu, rai = (ref_bc if b == "A" else ref_a)
         dev_new[f"X_{b}"] = np.column_stack([
             stats_matrix(buckets[b].generation),
-            coverage_matrix(buckets[b], ref_hu, ref_ai, loo=(b == "A")),
+            coverage_matrix(buckets[b], rhu, rai, loo=False),
         ])
         print(f"dev {b}: {dev_new[f'X_{b}'].shape}", flush=True)
     rewire(DEV_NPZ, ["X_A", "X_B", "X_C"], dev_new)
@@ -91,7 +98,7 @@ def main() -> None:
     for key, sub in (("X_hu", hold_hu), ("X_ai", hold_ai)):
         hold_new[key] = np.column_stack([
             stats_matrix(sub.generation),
-            coverage_matrix(sub, ref_hu, ref_ai, loo=False),
+            coverage_matrix(sub, ref_a[0], ref_a[1], loo=False),
         ])
         print(f"holdout {key}: {hold_new[key].shape}", flush=True)
     rewire(HOLD_NPZ, ["X_hu", "X_ai"], hold_new)

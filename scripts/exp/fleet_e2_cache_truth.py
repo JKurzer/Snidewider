@@ -71,14 +71,12 @@ def main() -> None:
     Xa = cache["X_A"]
 
     ai_self, hu_self = bank_self_indices([str(m) for m in a.model], N_BANK)
-    refs = ({q: build_reference(a[a.model == "human"].generation, q) for q in QS},
-            {q: build_reference(a[a.model != "human"].generation, q) for q in QS})
+    # A rows' coverage is vs B+C-built refs (cross-bucket, no LOU needed)
+    bc = pd.concat([buckets["B"], buckets["C"]])
+    refs = ({q: build_reference(bc[bc.model == "human"].generation, q) for q in QS},
+            {q: build_reference(bc[bc.model != "human"].generation, q) for q in QS})
     texts_a = [str(t) for t in a.generation]
     sources_a = list(a.source_id)
-    excl = {}
-    for src in set(sources_a):
-        mates = [texts_a[i] for i, s in enumerate(sources_a) if s == src]
-        excl[src] = {q: source_exclusion(mates, q) for q in QS}
 
     print("== exemplar LOO: bank members must NOT self-match ==")
     names0 = list(cache["feature_names"])
@@ -93,7 +91,7 @@ def main() -> None:
     for i in idx:
         fresh = np.array(featurize_all(str(gens[i]), bank_ai, bank_hu,
                                        ai_self[i], hu_self[i], refs=refs,
-                                       exclude=excl[sources_a[i]]), dtype=float)
+                                       exclude=None), dtype=float)
         cached = Xa[i]
         if not np.allclose(np.nan_to_num(fresh), np.nan_to_num(cached), atol=1e-9):
             d = np.abs(np.nan_to_num(fresh) - np.nan_to_num(cached))
