@@ -41,14 +41,17 @@ RAID repo README, MAGE repo README). Question: is our 1e-3 floor ridiculous?
 
 ## Verdict for us
 
-| operating point | who uses it | ensemble (pre-fix) | ensemble (honest feats) | **L0 champ (120-feat panel)** |
+| operating point | who uses it | ensemble | panel HGB | **L0 champ** |
 |---|---|---|---|---|---|
-| 5% FPR | **RAID official**, field norm | 0.272 | 0.260 | **0.702** [0.696, 0.708] |
-| 1% FPR | adversarial-paper norm | 0.113 | 0.121 | **0.536** [0.530, 0.543] |
-| 0.1% (1e-3) | our RULES default | 0.033 | 0.047 | **0.124** [0.119, 0.129] |
-| 0.01% (1e-4) | Binoculars headline (>90% TPR, own data) | below resolution (k=1) | below resolution | below resolution (k=1) |
+| 5% FPR | **RAID official**, field norm | 0.260 | 0.656 | **0.702** |
+| 1% FPR | adversarial-paper norm | 0.121 | 0.465 | **0.536** |
+| 0.1% (1e-3) | our RULES default | 0.047 | **0.208** | 0.124 |
+| 0.01% (1e-4) | Binoculars headline (>90% TPR, own data) | below resolution (k=1) | | |
 
-Holdout AUROC: ensemble 0.7861, **L0 champ 0.9103**. The 120-feat L0 champion
+Holdout AUROC (120-feat panel, all post-fix): ensemble 0.7861, panel HGB
+0.9061, **L0 champ 0.9103**. L0 owns the 1e-2/5e-2 operating range; HGB owns
+the 1e-3 extreme (0.208, edging the fleet-A2 long-doc stat's 0.200).
+Complementary aggregators; dev<->holdout tax is ~1x for both now. The 120-feat L0 champion
 is the first model whose dev->holdout tax is ~1.1x instead of ~2.8x (dev C
 0.919/0.597 -> holdout 0.910/0.536). Champion = 25 feats spanning every
 family: qg_mid, ex_contrast, ALL 9 coverage, 4 stats, shape, dct_bands, rel.

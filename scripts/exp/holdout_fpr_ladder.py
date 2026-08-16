@@ -71,6 +71,11 @@ def main() -> None:
     ladder("exam ensemble", meta.predict_proba(panel(X_ai))[:, 1],
            meta.predict_proba(panel(X_hu))[:, 1])
 
+    # --- tuned panel HGB (the head-to-head incumbent) on the full cache ---
+    hgb = HistGradientBoostingClassifier(max_iter=300, max_depth=4, learning_rate=0.08,
+                                         max_features=0.5, random_state=7).fit(Xa, ya)
+    ladder("panel HGB", hgb.predict_proba(X_ai)[:, 1], hgb.predict_proba(X_hu)[:, 1])
+
     # --- L0 champion (selection on dev B @1e-2, exactly as exp_l0_vs_hgb) ---
     Xa89 = impute(dev["X_A"].astype(float), np.nan_to_num(np.nanmean(dev["X_A"].astype(float), axis=0)))
     Xb89 = impute(dev["X_B"].astype(float), np.nan_to_num(np.nanmean(dev["X_A"].astype(float), axis=0)))
