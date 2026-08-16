@@ -16,6 +16,7 @@ from setuptools import setup
 ROOT = Path(__file__).resolve().parent.parent
 NATIVE = ROOT / "src" / "ai_text_detection" / "native"
 PKG = ROOT / "src" / "ai_text_detection"
+L0 = NATIVE / "l0learn"
 
 EXTENSIONS = [
     Pybind11Extension(
@@ -30,6 +31,22 @@ EXTENSIONS = [
         sources=[str(NATIVE / "qgram_module.cpp")],
         cxx_std=17,
         extra_compile_args=["/O2"] if sys.platform == "win32" else ["-O3"],
+    ),
+    Pybind11Extension(
+        "_l0learn_native",
+        sources=[str(NATIVE / "l0learn_module.cpp")]
+        + [str(L0 / f) for f in (
+            "BetaVector.cpp", "CDL012LogisticSwaps.cpp", "CDL012SquaredHingeSwaps.cpp",
+            "CDL012Swaps.cpp", "Grid.cpp", "Grid1D.cpp", "Grid2D.cpp",
+            "Normalize.cpp", "utils.cpp",
+        )],
+        include_dirs=[str(L0), str(L0 / "include"), str(L0 / "arma_include")],
+        cxx_std=17,
+        extra_compile_args=["/O2", "/DARMA_DONT_USE_WRAPPER", "/DARMA_DONT_USE_BLAS",
+                            "/DARMA_DONT_USE_LAPACK", "/DARMA_DONT_USE_OPENMP"]
+        if sys.platform == "win32"
+        else ["-O3", "-DARMA_DONT_USE_WRAPPER", "-DARMA_DONT_USE_BLAS",
+              "-DARMA_DONT_USE_LAPACK", "-DARMA_DONT_USE_OPENMP"],
     ),
 ]
 
