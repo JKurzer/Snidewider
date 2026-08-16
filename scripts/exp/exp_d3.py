@@ -10,7 +10,7 @@ alternative shape families from the same DCT segment encoding (K=5 bands):
   bands    per-coefficient energy stats: ||c_k|| mean/std, k=0..4, plus
            ||c_k||/||c_0|| ratio stats, k=1..4 (order-spectrum profile)
   normpct  percentiles of segment-norm distribution (p05..p95, IQR, p90-p10)
-  drift    first-third vs last-third contrast in DCT space (doc-level drift)
+  arc      first-third vs last-third contrast in DCT space (doc-level arc)
   acosq    adjacent-cosine QUANTILES (p05..p95 + IQR) instead of mean/stdev
 
 Protocol (RULES #2/#4): detectors train on A, shape selection on B, final
@@ -147,10 +147,10 @@ def shape_normpct(doc: _Doc) -> dict[str, float]:
     return out
 
 
-def shape_drift(doc: _Doc) -> dict[str, float]:
-    """First-third vs last-third contrast: does the doc drift in DCT space?"""
+def shape_arc(doc: _Doc) -> dict[str, float]:
+    """First-third vs last-third contrast: does the doc arc in DCT space?"""
     if doc.n < 3:
-        return {f"drift_{k}": math.nan for k in ("cos", "adj", "ratio", "norm")}
+        return {f"arc_{k}": math.nan for k in ("cos", "adj", "ratio", "norm")}
     third = max(1, doc.n // 3)
     first_v = np.mean(doc.vectors[:third], axis=0)
     last_v = np.mean(doc.vectors[-third:], axis=0)
@@ -160,10 +160,10 @@ def shape_drift(doc: _Doc) -> dict[str, float]:
     adj_first = doc.adjacent[: max(1, third - 1)]
     adj_last = doc.adjacent[-max(1, third - 1) :]
     return {
-        "drift_cos": float(first_v @ last_v / denom) if denom else 0.0,
-        "drift_adj": float(np.mean(adj_first) - np.mean(adj_last)),
-        "drift_ratio": float(np.mean(ratios[:third]) - np.mean(ratios[-third:])),
-        "drift_norm": float(np.median(norms[:third]) - np.median(norms[-third:])),
+        "arc_cos": float(first_v @ last_v / denom) if denom else 0.0,
+        "arc_adj": float(np.mean(adj_first) - np.mean(adj_last)),
+        "arc_ratio": float(np.mean(ratios[:third]) - np.mean(ratios[-third:])),
+        "arc_norm": float(np.median(norms[:third]) - np.median(norms[-third:])),
     }
 
 
@@ -181,7 +181,7 @@ SHAPES = {
     "paircos": shape_paircos,
     "bands": shape_bands,
     "normpct": shape_normpct,
-    "drift": shape_drift,
+    "arc": shape_arc,
     "acosq": shape_acosq,
 }
 

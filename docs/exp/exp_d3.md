@@ -18,11 +18,11 @@ while the tail signal at FPR=1e-3 lives in its shape. Solo base TPR@1e-3 on C:
 | paircos  | 10 | seeded (md5-of-text) random *non-adjacent* segment-pair cosine quantiles + adj−nonadj gap: global smoothness vs local |
 | bands    | 18 | per-coefficient energy profile: ||c_k|| mean/std k=0..4 + ||c_k||/||c_0|| ratio stats k=1..4 (the "order spectrum") |
 | normpct  | 9  | percentiles (p05..p95, IQR, p90−p10) of segment-norm distribution |
-| drift    | 4  | first-third vs last-third contrast: centroid cosine, adj-cos shift, order-ratio shift, norm shift |
+| arc      | 4  | first-third vs last-third contrast: centroid cosine, adj-cos shift, order-ratio shift, norm shift |
 | acosq    | 9  | adjacent-cosine *quantiles* instead of mean/stdev |
 
 Selection on **B** (trained on A; C untouched until one final pass).
-Winner on B: **nobase** = paircos+bands+normpct+drift+acosq (50 feats),
+Winner on B: **nobase** = paircos+bands+normpct+arc+acosq (50 feats),
 B TPR@1e-3 0.061 vs base 0.000.
 
 ## Per-shape table (HGB random_state=7, trained on A)
@@ -33,7 +33,7 @@ B TPR@1e-3 0.061 vs base 0.000.
 | paircos | 0.620   | 0.010      | 0.649   | 0.004      |
 | bands   | 0.785   | 0.054      | 0.796   | 0.055      |
 | normpct | 0.733   | 0.001      | 0.718   | 0.001      |
-| drift   | 0.680   | 0.002      | 0.661   | 0.000      |
+| arc     | 0.680   | 0.002      | 0.661   | 0.000      |
 | acosq   | 0.641   | 0.007      | 0.640   | 0.008      |
 | all     | 0.853   | 0.027      | 0.836   | 0.100      |
 | nobase  | 0.852   | **0.061**  | 0.847   | 0.020      |

@@ -4,7 +4,7 @@
 suffer the reported tail dilution — raw DCT gives TPR@1e-3 = 0.234 (3-det: 0.175).
 Isotonic-calibrating the DCT score on B is the only variant that moves the corner
 further: 0.249 [0.223, 0.277], AUROC 0.915. The 0.170→0.155 regression was a
-code-drift artifact, not a DCT calibration problem.**
+code-change artifact, not a DCT calibration problem.**
 
 ## Protocol (RULES #4/#3)
 
@@ -66,7 +66,7 @@ escapes invariance only because its fitted step function creates ties.
   Same DCT, same buckets, same meta — the only swapped ingredient is the base-score
   provenance: cached qgram12 (current main code) has AUROC 0.893 / TPR 0.038 vs
   0.886 / 0.056 recomputed from 0b723bf-era code. **The dilution was qgram12 code
-  drift interacting with DCT, not DCT miscalibration.** Fleet: treat pre-cache stack
+  code-change interacting with DCT, not DCT miscalibration.** Fleet: treat pre-cache stack
   numbers as stale.
 - The hgb meta's corner is *not* noise: column permutations and seeds {0,1,2,7,42}
   give bit-identical 0.234 (no early stopping at n=1500 → deterministic).

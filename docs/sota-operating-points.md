@@ -49,7 +49,7 @@ RAID repo README, MAGE repo README). Question: is our 1e-3 floor ridiculous?
 | 0.01% (1e-4) | Binoculars headline (>90% TPR, own data) | below resolution (k=1) | below resolution (k=1) | below resolution (k=1) |
 
 **2026-08-16 protocol fix (fleet_holdout_audit): dev buckets had been
-100% llama-chat (parquet model-ordering + head(2)); the "2.8x drift tax" was
+100% llama-chat (parquet model-ordering + head(2)); the "2.8x tax" was
 this artifact. After seeded-uniform AI slot sampling: holdout AUROC
 0.7113 -> 0.8203, TPR@1e-2 0.113 -> 0.217.** The mix-trained ensemble buys
 mid-tail at the cost of deep tail (1e-3: 0.033 -> 0.015); the fleet-A2

@@ -26,7 +26,7 @@ stream. Stepped CK2 at window 32 needs ≥64 symbols:
 | # | Probe | Headline number | Verdict |
 |---|-------|-----------------|---------|
 | 2 | TOKEN-JUMBLE: per-doc CK2(orig, jumbled) | **0.697** mean / 0.692 median / max 1.0 | raw stream NOT blind to order (expected: same symbol multiset ⇒ CK2 isolates order; permuted order scores high) |
-| 2 | TOKEN-JUMBLE: stats movement (w8) | mean \|Δstdev\| **0.0377** vs baseline 0.0818 (±46% jitter), signed Δ **−0.0010** (no direction) | stat jitters under permutation but drifts nowhere |
+| 2 | TOKEN-JUMBLE: stats movement (w8) | mean \|Δstdev\| **0.0377** vs baseline 0.0818 (±46% jitter), signed Δ **−0.0010** (no direction) | stat jitters under permutation but moves nowhere |
 | 2 | class separation before → after | w8 AUROC **0.512 → 0.511** (n=880) | the (null) authorship signal is fully preserved under jumbling |
 | 3 | CHAR-JUMBLE-WITHIN-TOKENS: byte-identical streams | **1000/1000 = 1.0000** [Wilson 0.9962, 1.0] | total content blindness — the map is a pure function of token lengths |
 | 4 | CHAR-JUMBLE-GLOBAL: CK2(orig, global) | **0.814** mean; w8 \|Δstdev\| 0.0368 | map DOES respond when lengths are destroyed — sanity holds |

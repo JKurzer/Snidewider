@@ -9,7 +9,7 @@ Families (all from the K=5 segment encoding):
   paircos  seeded random non-adjacent pair-cosine quantiles + adj/nonadj gap
   bands    per-coefficient energy spectrum ||c_k|| stats + ratios to ||c_0||
   normpct  percentile profile of the segment-norm distribution
-  drift    first-third vs last-third contrast (doc-level DCT-space drift)
+  arc      first-third vs last-third contrast (doc-level DCT-space arc)
   acosq    adjacent-cosine quantiles (tail of local smoothness)
 
 Pair sampling is seeded by content hash — pure functions (RULES #5).
@@ -106,10 +106,10 @@ def _normpct(doc: _Doc, out: dict[str, float]) -> None:
         out[f"normpct_{name}"] = val
 
 
-def _drift(doc: _Doc, out: dict[str, float]) -> None:
+def _arc(doc: _Doc, out: dict[str, float]) -> None:
     if doc.n < 3:
         for key in ("cos", "adj", "ratio", "norm"):
-            out[f"drift_{key}"] = math.nan
+            out[f"arc_{key}"] = math.nan
         return
     third = max(1, doc.n // 3)
     first_v = np.mean(doc.vectors[:third], axis=0)
@@ -119,10 +119,10 @@ def _drift(doc: _Doc, out: dict[str, float]) -> None:
     norms = doc.norms()
     adj_first = doc.adjacent[: max(1, third - 1)]
     adj_last = doc.adjacent[-max(1, third - 1) :]
-    out["drift_cos"] = float(first_v @ last_v / denom) if denom else 0.0
-    out["drift_adj"] = float(np.mean(adj_first) - np.mean(adj_last))
-    out["drift_ratio"] = float(np.mean(ratios[:third]) - np.mean(ratios[-third:]))
-    out["drift_norm"] = float(np.median(norms[:third]) - np.median(norms[-third:]))
+    out["arc_cos"] = float(first_v @ last_v / denom) if denom else 0.0
+    out["arc_adj"] = float(np.mean(adj_first) - np.mean(adj_last))
+    out["arc_ratio"] = float(np.mean(ratios[:third]) - np.mean(ratios[-third:]))
+    out["arc_norm"] = float(np.median(norms[:third]) - np.median(norms[-third:]))
 
 
 def _acosq(doc: _Doc, out: dict[str, float]) -> None:
@@ -130,7 +130,7 @@ def _acosq(doc: _Doc, out: dict[str, float]) -> None:
         out[f"acosq_{name}"] = val
 
 
-_SHAPE_FNS = (_paircos, _bands, _normpct, _drift, _acosq)
+_SHAPE_FNS = (_paircos, _bands, _normpct, _arc, _acosq)
 
 
 def dct_tail_features(text: str) -> dict[str, float]:

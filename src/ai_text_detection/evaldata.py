@@ -20,7 +20,7 @@ def _ai_sample(ai: pd.DataFrame, k: int, salt: int) -> pd.DataFrame:
     groupby().head(k) silently takes the same model (llama-chat) for every
     source — FLEET D audit (docs/exp/fleet_holdout_audit.md): head(2) made
     dev AI 100% llama-chat while holdout is 11 models, fabricating a uniform
-    ~2.8x dev->holdout 'drift' tax. Uniform slot sampling matches the
+    ~2.8x dev->holdout sampling tax. Uniform slot sampling matches the
     holdout mix in expectation.
     """
     rng = np.random.RandomState(salt)

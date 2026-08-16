@@ -1,4 +1,4 @@
-"""Holdout breakout: per-feature drift table + frozen (no-HGB) ensemble.
+"""Holdout breakout: per-feature devC-vs-holdout delta table + frozen ensemble.
 
 Second holdout contact, ordered by Donk. Same threshold protocol as the exam:
 bars from C humans, applied to holdout; achieved FPR reported honestly.
@@ -69,7 +69,7 @@ def main() -> None:
             print(f"  {name} done: {store[name].shape}", flush=True)
         np.savez(OUT_NPZ, X_hu=store["human"], X_ai=store["ai"], feature_names=np.array(names))
 
-    # ---- per-feature drift table ----
+    # ---- per-feature devC-vs-holdout delta table ----
     Xh, Xa_hold = store["human"], store["ai"]
     dev_c_hu = Xc[yc == 0]
     dev_c_ai = Xc[yc == 1]
@@ -89,7 +89,7 @@ def main() -> None:
         tpr = float(np.mean(ai_h_ok >= bar))
         rows.append(
             {"feature": fname, "auroc_devC": roc_c, "auroc_holdout": roc_h,
-             "drift": (roc_h - roc_c) if np.isfinite(roc_h) and np.isfinite(roc_c) else np.nan,
+             "delta": (roc_h - roc_c) if np.isfinite(roc_h) and np.isfinite(roc_c) else np.nan,
              "fpr_holdout": fpr, "tpr_holdout": tpr}
         )
     table = pd.DataFrame(rows).sort_values("auroc_holdout", ascending=False, na_position="last")
@@ -123,15 +123,15 @@ def main() -> None:
     print(f"\nFROZEN ensemble (no HGB): holdout AUROC {roc:.3f} | FPR {fpr:.5f} | TPR {tpr:.4f}")
 
     with open(OUT_MD, "w", encoding="utf-8") as fh:
-        fh.write("# Holdout breakout: per-feature drift + frozen ensemble\n\n")
+        fh.write("# Holdout breakout: per-feature devC-vs-holdout delta + frozen ensemble\n\n")
         fh.write(f"Frozen equal-weight ensemble (no learning): AUROC {roc:.3f}, "
                  f"FPR {fpr:.5f}, TPR {tpr:.4f}\n\n")
-        fh.write("| feature | auroc_devC | auroc_holdout | drift | fpr_holdout | tpr_holdout |\n")
+        fh.write("| feature | auroc_devC | auroc_holdout | delta | fpr_holdout | tpr_holdout |\n")
         fh.write("|---|---|---|---|---|---|\n")
         for _, r in table.iterrows():
             fh.write(
                 f"| {r.feature} | {r.auroc_devC:.3f} | {r.auroc_holdout:.3f} | "
-                f"{r.drift:+.3f} | {r.fpr_holdout:.5f} | {r.tpr_holdout:.4f} |\n"
+                f"{r.delta:+.3f} | {r.fpr_holdout:.5f} | {r.tpr_holdout:.4f} |\n"
             )
     print(f"\n{OUT_MD} written")
 

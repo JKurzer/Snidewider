@@ -1,6 +1,6 @@
 """FLEET A — qg_mid expansion: non-mean aggregations + coverage windows.
 
-Context: qg_mid_qgram_mean is the most drift-robust panel feature (holdout
+Context: qg_mid_qgram_mean is the most holdout-robust panel feature (holdout
 AUROC 0.879 solo) but covers only ~9% of dev docs (needs >= 2*W + min_gap =
 350 tokens at W=150). The F3 fleet wired only mean/stdev off the random
 pair-distance series; burst already computes a richer series. Hypotheses:
