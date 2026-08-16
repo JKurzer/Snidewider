@@ -42,17 +42,23 @@ def tpr_at_fpr(
 ) -> dict[str, float]:
     """TPR at a fixed FPR with a Wilson CI. Higher score = more AI-like.
 
-    Threshold is the (1 - fpr) quantile of human scores (nearest-rank).
+    Threshold rule (tie-safe): place the bar just above the k-th largest
+    human score, k = floor(fpr * n_humans), so the ACHIEVED FPR never
+    exceeds the target even with tied score masses (e.g. mass at 0.0).
+    Reports the achieved FPR alongside TPR for honesty.
     """
     if not ai_scores or not human_scores:
         raise ValueError("both classes must be non-empty")
-    ordered = sorted(human_scores)
-    rank = max(0, math.ceil((1 - fpr) * len(ordered)) - 1)
-    threshold = ordered[rank]
+    ordered = sorted(human_scores, reverse=True)
+    k = int(fpr * len(ordered))  # allowed false positives
+    pivot = ordered[k] if k < len(ordered) else ordered[-1]
+    threshold = math.nextafter(pivot, math.inf)  # strictly above the k-th largest
+    fpr_achieved = sum(1 for s in human_scores if s >= threshold) / len(human_scores)
     hits = sum(1 for s in ai_scores if s >= threshold)
     lo, hi = wilson_ci(hits, len(ai_scores))
     return {
         "threshold": threshold,
+        "fpr_achieved": fpr_achieved,
         "tpr": hits / len(ai_scores),
         "tpr_lo": lo,
         "tpr_hi": hi,

@@ -1,5 +1,6 @@
 """Hits feature tests: known-fragment detection, no-match case, purity."""
 
+from ai_text_detection import qgram
 from ai_text_detection.hits import ChunkBank, hit_features
 
 AI_DOC = "the quick brown fox jumps over the lazy dog and runs into the forest " * 8
@@ -31,3 +32,16 @@ def test_pure_given_fixed_banks():
     ai_bank, hu_bank = _banks()
     doc = b"some sample document " * 20
     assert hit_features(doc, ai_bank, hu_bank) == hit_features(doc, ai_bank, hu_bank)
+
+
+def test_containment_agrees_with_search_oracle():
+    # mildly mutated fragment: both the filter and the full search should hit
+    ai_bank, hu_bank = _banks()
+    chunk = ai_bank.chunks[0]
+    mutated = bytearray(chunk)
+    for pos in (10, 60, 110):  # 3 single-char edits in a 150B chunk
+        mutated[pos] = ord("z")
+    doc = b"lead in text. " + bytes(mutated) + b" trailing text goes here."
+    filter_hits = hit_features(doc, ai_bank, hu_bank)["hits_ai_rate"] == 1.0
+    search_hits = bool(qgram.search(doc, chunk, 5, 30))
+    assert filter_hits and search_hits
