@@ -19,7 +19,7 @@ from ai_text_detection import ck2
 from ai_text_detection.metrics import auroc, tpr_at_fpr
 from ai_text_detection.shape import dct_run_map
 
-LEVELS = [f / 10 for f in range(1, 11)]  # 0.1 .. 1.0
+LEVELS = [f / 100 for f in range(1, 101)]  # 0.01 .. 1.0 (100 passes)
 
 
 def jumble_fraction(text: str, frac: float, seed: int) -> str:
@@ -63,9 +63,14 @@ def main() -> None:
     print(f"coverage: {len(X)}/2000 docs")
 
     print("\nper-level AUROC:")
+    level_rocs = []
     for li, f in enumerate(LEVELS):
         roc = auroc(list(X[y == 1, li]), list(X[y == 0, li]))
-        print(f"  f={f:.1f}  AUROC {roc:.3f}  (human {X[y==0, li].mean():.3f} vs ai {X[y==1, li].mean():.3f})")
+        level_rocs.append(roc)
+        if len(LEVELS) <= 12 or li % 10 == 0:
+            print(f"  f={f:.2f}  AUROC {roc:.3f}  (human {X[y==0, li].mean():.3f} vs ai {X[y==1, li].mean():.3f})")
+
+    print(f"\nper-level AUROC summary: min {min(level_rocs):.3f} max {max(level_rocs):.3f} over {len(LEVELS)} levels")
 
     idx = np.arange(len(X))
     rng = np.random.RandomState(5)
