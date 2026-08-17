@@ -19,6 +19,10 @@ Ordered by Donk, 2026-08-16. Each item links its evidence trail.
    lit does this): initial-phoneme repeat rate per sentence; humans avoid
    alliteration except as device, AI doesn't modulate. Needs a light
    phoneme approximation (letter-pair onset proxy acceptable for v1).
+4a. **Structure-entropy pack** (docs/equi2026-qpm-review.md): sam_states,
+   bwt_runs, lz77_phrases, delta — the size of a doc's minimal index IS its
+   entropy; the principled upgrade of zlib_ratio. SAM build for the ms_
+   family makes sam_states a free rider.
 4. **De Bruijn "repair depth" aberration** (LoRMA-inspired, Salmela/Walve/
    Rivals/Ukkonen 2017): treat the reference corpus's k-mer counts as the
    graph; measure how much of a test doc sits on rare-vs-common edges.

@@ -25,6 +25,7 @@ sentence encoding (`dct.py`, `docs/dct-encoder.md`), hazimehh/L0Learn
 | liptak-masillo-puglisi2026-matching-statistics-survey.pdf | Lipták/Masillo/Puglisi 2026 (TCS) | docs/condensates.md |
 | puglisi2026-repetitiveness-reversal.pdf | Bannai-circle + Puglisi 2026 (CPM) | docs/condensates.md |
 | alanko2025-spectral-bwt-kmer-lookup.pdf | Alanko/Biagi/Mackenzie/Puglisi 2025 (ALENEX) | docs/condensates.md |
+| makinen2026-quantum-pattern-matching-degenerate.pdf | Equi/Khan/Mäkinen 2026 (QPM on GD strings) | docs/equi2026-qpm-review.md |
 
 ## CANDIDATE
 
@@ -47,9 +48,8 @@ sentence encoding (`dct.py`, `docs/dct-encoder.md`), hazimehh/L0Learn
 
 ## SHELF
 
-| file | content |
-|---|---|
-| makinen2026-quantum-pattern-matching-degenerate.pdf | quantum pattern matching — because why not |
+(nothing — the one shelf resident turned out to be an entropy paper in
+disguise; see docs/equi2026-qpm-review.md)
 
 Missing: Diseth/Heljanko/Puglisi "Massively Parallel Computation of Matching
 Statistics" (SPIRE 2025) — embargoed at last check.
