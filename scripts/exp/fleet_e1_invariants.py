@@ -71,7 +71,7 @@ def main() -> None:
     names = list(np.load("data/derived/full_features.npz")["feature_names"])
     fams = {"rel_": (0, 8), "qg_": (8, 20), "ex_": (20, 31), "dct_": (31, 81),
             "shape_": (81, 89), "stat_": (89, 111), "cov": (111, 120),
-            "col_": (120, 130), "chr_": (130, 153)}
+            "col_": (120, 130), "chr_": (130, 153), "csa_": (153, 156)}
     for fam, (lo, hi) in fams.items():
         block = names[lo:hi]
         check(f"slice {lo}:{hi} == {fam}*", all(n.startswith(fam) for n in block),

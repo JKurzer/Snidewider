@@ -46,8 +46,8 @@ exemplar LOO, cross-bucket coverage refs)
 
 | model | AUROC | TPR@5e-2 | TPR@1e-2 | TPR@1e-3 |
 |---|---|---|---|---|
-| **panel HGB (156 feats)** | **0.9899** | **0.959** | **0.866** | **0.590** |
-| L0 champ (14 feats) | 0.9407 | 0.775 | 0.611 | 0.349 |
+| **panel HGB (156 feats, incl raw CSA)** | **0.9899** | **0.960** | **0.872** | **0.635** |
+| L0 champ (27 feats, incl csa_wt_rate) | 0.9444 | 0.776 | 0.599 | 0.237 |
 | exam ensemble (81-feat families) | 0.7861 | 0.260 | 0.121 | 0.047 |
 
 (120-feat + stack variants superseded by the 156-feat panel; see git history.)

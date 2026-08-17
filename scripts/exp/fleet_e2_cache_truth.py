@@ -14,7 +14,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from ai_text_detection import qgram
+from ai_text_detection import _csa_native, qgram
 from ai_text_detection.coverage import (
     COVERAGE_FEATURE_NAMES,
     QS,
@@ -63,6 +63,10 @@ def featurize_all(text: str, bank_ai: ExemplarBank, bank_hu: ExemplarBank,
         row += [cov[k] for k in COVERAGE_FEATURE_NAMES]
     row += [col[k] for k in COLLAPSE_FEATURE_NAMES]
     row += [chr_[k] for k in CHARSTAT_FEATURE_NAMES]
+    b = text.encode("utf-8")
+    csa = _csa_native.csa_stats(b)
+    nn = max(1, len(b))
+    row += [float(len(b)), csa["csa_wt_bytes"] / nn, csa["csa_sada_bytes"] / nn]
     return row
 
 
