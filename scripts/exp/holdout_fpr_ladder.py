@@ -11,8 +11,10 @@ gate: holdout AUROC must reproduce the exam's 0.714. Thresholds here come
 from the holdout score distribution itself (a ROC read, RAID-style), not
 re-tuned model selection — no champions are picked on holdout.
 
-Also reads the L0 best-subset champion (selected on dev B @1e-2 in
-exp_l0_vs_hgb.py) IF its features live inside the 81-feat holdout panel.
+L0 is OFFLINE (2026-08-17): the panel HGB beat the L0 champion on every
+holdout rung, so the L0 arm was removed from this flow. It stays
+resurrectable: the _l0learn_native extension ships and exp_l0_vs_hgb.py +
+show_champ.py reproduce the champion. Rationale in the git log.
 
 Usage: .venv\\Scripts\\python scripts\\exp\\holdout_fpr_ladder.py
 """
@@ -20,7 +22,6 @@ Usage: .venv\\Scripts\\python scripts\\exp\\holdout_fpr_ladder.py
 import numpy as np
 from sklearn.ensemble import HistGradientBoostingClassifier
 
-from ai_text_detection import _l0learn_native
 from ai_text_detection.metrics import auroc, tpr_at_fpr
 
 FAMS = {"relative-burst": (0, 8), "qgram12": (8, 20), "exemplar": (20, 31), "dct-nobase": (31, 81)}
@@ -76,33 +77,7 @@ def main() -> None:
                                          max_features=0.5, random_state=7).fit(Xa, ya)
     ladder("panel HGB", hgb.predict_proba(X_ai)[:, 1], hgb.predict_proba(X_hu)[:, 1])
 
-    # --- L0 champion (selection on dev B @1e-2, exactly as exp_l0_vs_hgb) ---
-    Xa89 = impute(dev["X_A"].astype(float), np.nan_to_num(np.nanmean(dev["X_A"].astype(float), axis=0)))
-    Xb89 = impute(dev["X_B"].astype(float), np.nan_to_num(np.nanmean(dev["X_A"].astype(float), axis=0)))
-    best = None
-    for penalty in ("L0", "L0L2"):
-        out = _l0learn_native.fit(np.asfortranarray(Xa89), dev["y_A"].astype(float),
-                                  penalty=penalty, n_lambda=100, max_nnz=25)
-        off = 0
-        for Bm in out["betas"]:
-            Bm = np.asarray(Bm)
-            for j in range(Bm.shape[1]):
-                beta, b0 = Bm[:, j], float(out["intercepts"][off + j])
-                sb = 1 / (1 + np.exp(-(Xb89 @ beta + b0)))
-                r = tpr_at_fpr(list(sb[yb == 1]), list(sb[yb == 0]), fpr=1e-2)
-                key = (r["tpr"], auroc(list(sb[yb == 1]), list(sb[yb == 0])))
-                if best is None or key > best[0]:
-                    best = (key, beta, b0, int(np.count_nonzero(beta)))
-            off += Bm.shape[1]
-    _, beta, b0, nnz = best
-    feats = [dev_names[i] for i in np.nonzero(beta)[0]]
-    missing = [f for f in feats if f not in col]
-    if missing:
-        print(f"  L0 champ (nnz={nnz}) NOT readable: {missing} absent from holdout cache")
-    else:
-        idx = [hold_names.index(f) for f in feats]
-        sig = lambda X: 1 / (1 + np.exp(-(X[:, idx] @ beta[np.nonzero(beta)[0]] + b0)))
-        ladder(f"L0 champ (nnz={nnz})", sig(X_ai), sig(X_hu))
+    # (L0 arm removed - offline per Donk 2026-08-17; resurrectable, see docstring)
 
 
 if __name__ == "__main__":

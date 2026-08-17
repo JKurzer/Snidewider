@@ -46,9 +46,13 @@ exemplar LOO, cross-bucket coverage refs)
 
 | model | AUROC | TPR@5e-2 | TPR@1e-2 | TPR@1e-3 |
 |---|---|---|---|---|
-| **panel HGB (156 feats, incl raw CSA)** | **0.9899** | **0.960** | **0.872** | **0.635** |
-| L0 champ (27 feats, incl csa_wt_rate) | 0.9444 | 0.776 | 0.599 | 0.237 |
-| exam ensemble (81-feat families) | 0.7861 | 0.260 | 0.121 | 0.047 |
+| **panel HGB (157 feats; = the detector bundle)** | **0.9905** | **0.962** | **0.874** | **0.618** |
+| exam ensemble (81-feat families, legacy) | 0.7861 | 0.260 | 0.121 | 0.047 |
+
+(2026-08-17 finalization: L0 taken offline - lost every holdout rung to the
+panel HGB; resurrectable via _l0learn_native + exp_l0_vs_hgb.py. Panel now
+157 feats with qg_s256_ck2_mean wired in. Bundle sanity-verified against
+this ladder to the digit.)
 
 (120-feat + stack variants superseded by the 156-feat panel; see git history.)
 The 36 distillation features (collapse-spectrum + char census) alone score
