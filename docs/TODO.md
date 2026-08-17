@@ -51,9 +51,14 @@ step is a proper feature bench (csa_bytes_rate) on long docs.
    logistic calibration on B, read on C; docs/ghatpande2026-lr-fusion.md).
 6. **Legacy dup pairs**: rel_qgram_* ≡ qg_q3_* (4 exact pairs) — disentangle
    the F1/F3 family definitions at the next planned cache rebuild.
-7. **RAID leaderboard adapter** (pickled panel HGB + raid-bench harness;
-   pre-flight: verify test/train source disjointness; reproduce our ladder
-   through their run_evaluation first).
+7. ~~RAID leaderboard adapter~~ **READY (2026-08-17):** submissions/
+   snidewider/predictions.json (56K rows, official run_detection interface)
+   + metadata.json drafted. Pre-flight all green: bundle==ladder exact
+   (0.9905/0.962/0.874/0.618); official run_evaluation on our holdout =
+   acc@5%FPR 0.9585 (weakest: reviews 0.880, poetry 0.897); 113 duplicate-
+   text overlaps with test found+documented (poetry-heavy dups, 0.2%).
+   REMAINING STEP (Donk's call): fork liamdugan/raid, drop the two files,
+   PR.
 
 ## Watch list
 
