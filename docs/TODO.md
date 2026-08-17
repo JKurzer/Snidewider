@@ -9,8 +9,12 @@ size, SAM transition counts. OUTCOME: individually near coin-flip
 (0.51-0.53 solo), dragon6 alone 0.773/0.177, zero increment over the panel
 — absolute complexity varies by domain/length more than by generator on
 this mix; the signal lives in REFERENCE-RELATIVE measures. Kept as
-fleet-benched pack; revisit on longer-document data. The full CSA-compressed
-Kolmogorov estimator remains unbuilt (hard, low expected value now).
+fleet-benched pack; revisit on longer-document data.
+UPDATE (same night): the CSA harness now EXISTS — sdsl-lite + libdivsufsort
+vendored as _csa_native (csa_wt<wt_huff> and csa_sada size_in_bytes + SA +
+BWT exposed; SA oracle-verified). 1MB repetitive: 0.913 B/char vs 100KB
+random: 1.953 B/char — the compressed size does discriminate. The remaining
+step is a proper feature bench (csa_bytes_rate) on long docs.
 
 ## Feature packs (fleet candidates)
 

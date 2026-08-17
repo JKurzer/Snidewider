@@ -17,6 +17,8 @@ ROOT = Path(__file__).resolve().parent.parent
 NATIVE = ROOT / "src" / "ai_text_detection" / "native"
 PKG = ROOT / "src" / "ai_text_detection"
 L0 = NATIVE / "l0learn"
+SDSL = NATIVE / "sdsl"
+LDSS = NATIVE / "libdivsufsort"
 
 EXTENSIONS = [
     Pybind11Extension(
@@ -47,6 +49,19 @@ EXTENSIONS = [
         if sys.platform == "win32"
         else ["-O3", "-DARMA_DONT_USE_WRAPPER", "-DARMA_DONT_USE_BLAS",
               "-DARMA_DONT_USE_LAPACK", "-DARMA_DONT_USE_OPENMP"],
+    ),
+    Pybind11Extension(
+        "_csa_native",
+        sources=[str(NATIVE / "csa_module.cpp")]
+        + [str(p) for p in (SDSL / "lib").glob("*.cpp")]
+        + [str(p) for p in (LDSS / "lib").glob("*.c")],
+        include_dirs=[str(SDSL / "include"), str(LDSS / "include")],
+        cxx_std=17,
+        # MSVC_COMPILER: sdsl's own guard macro - skips POSIX headers on
+        # Windows builds. /permissive- makes alternative tokens (or/and)
+        # real keywords for sdsl's headers.
+        extra_compile_args=["/O2", "/permissive-", "/DMSVC_COMPILER", "/DHAVE_CONFIG_H"]
+        if sys.platform == "win32" else ["-O3"],
     ),
 ]
 
