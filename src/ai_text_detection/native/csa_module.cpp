@@ -5,8 +5,10 @@
 #include <pybind11/pybind11.h>
 
 #include <pybind11/numpy.h>
+#include <pybind11/stl.h>
 #include <sdsl/csa_sada.hpp>
 #include <sdsl/csa_wt.hpp>
+#include <sdsl/ram_fs.hpp>
 #include <sdsl/suffix_arrays.hpp>
 #include <string>
 
@@ -52,4 +54,8 @@ PYBIND11_MODULE(_csa_native, m) {
     m.doc() = "sdsl-lite CSA measures (csa_wt<wt_huff> + csa_sada sizes, SA, BWT).";
     m.def("csa_stats", &csa_stats, py::arg("s"),
           "Build CSAs over s; return sizes in bytes, the suffix array, and the BWT.");
+    m.def("ramfs_size", []() { return sdsl::ram_fs::size(); },
+          "Diagnostic: number of files in sdsl's ram_fs registry (leak watch).");
+    m.def("ramfs_keys", []() { return sdsl::ram_fs::keys(); },
+          "Diagnostic: current ram_fs keys.");
 }

@@ -85,6 +85,23 @@ ram_fs::rename(const std::string old_filename, const std::string new_filename)
     return 0;
 }
 
+size_t
+ram_fs::size()
+{
+    std::lock_guard<std::recursive_mutex> lock(m_rlock);
+    return m_map.size();
+}
+
+std::vector<std::string>
+ram_fs::keys()
+{
+    std::lock_guard<std::recursive_mutex> lock(m_rlock);
+    std::vector<std::string> out;
+    out.reserve(m_map.size());
+    for (const auto& kv : m_map) out.push_back(kv.first);
+    return out;
+}
+
 bool is_ram_file(const std::string& file)
 {
     if (file.size() > 0) {

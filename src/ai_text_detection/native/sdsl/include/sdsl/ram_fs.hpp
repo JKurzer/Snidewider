@@ -60,6 +60,9 @@ class ram_fs
         static int remove(const std::string& name);
         //! Rename the file. Change key `old_filename` into `new_filename`.
         static int rename(const std::string old_filename, const std::string new_filename);
+        //! (vendored) registry size + key list for leak diagnostics
+        static size_t size();
+        static std::vector<std::string> keys();
 };
 
 //! Determines if the given file is a RAM-file.
