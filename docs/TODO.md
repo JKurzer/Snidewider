@@ -8,13 +8,12 @@ Ordered by Donk, 2026-08-16. Each item links its evidence trail.
    Ghatpande et al. 2026 review, docs/ghatpande2026-lr-fusion.md).
    English pack: comma-following-word-class profile, Oxford-comma rate,
    comma-splice tendency, quote/period-adjacency patterns. Cheap, single-pass.
-2. **Repetitiveness measures** (Puglisi orbit: Bannai/Inenaga CPM 2026
-   "Sensitivity of Repetitiveness Measures to String Reversal"; Lipták/
-   Masillo/Puglisi 2026 "Matching statistics — a survey").
-   - δ = max_k (#distinct k-mers / k) — we already compute q-gram profiles;
-     a per-doc δ is nearly free. AI text = more repetitive = lower δ.
-   - matching-statistic distribution of a doc vs the pooled human reference
-     (per-position longest-match lengths): a "statistical condensate" proper.
+2. ~~Repetitiveness measures~~ **BENCHED (fleet_condensates.py, 2026-08-16):
+   cond30 alone 0.971 AUROC / 0.755 TPR@1e-2 dev C; ms_contrast_mean is the
+   strongest single contrast feature ever benched here (0.912/0.591).
+   Panel increment = TIE (info already present via coverage channel) -> not
+   wired per RULE 6; kept as the fast-lane pack. ms_ uses cross-bucket refs
+   (A vs B+C grams) after the expected in-fold crater taught us nothing new.**
 3. **Alliteration/phonotactic rate** (Donk's whitespace find — nobody in the
    lit does this): initial-phoneme repeat rate per sentence; humans avoid
    alliteration except as device, AI doesn't modulate. Needs a light
