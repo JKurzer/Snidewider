@@ -73,9 +73,8 @@ def featurize(text: str, artifacts: dict, *, csa_mode: str = "impute") -> np.nda
     if any(n.startswith("bg_") for n in artifacts["feature_names"]):
         rates = bigram_rates(text)
         row.extend(rates[k] for k in BIGRAM_FEATURE_NAMES)
-    if any(n.startswith("reuse_") for n in artifacts["feature_names"]):
-        ru = token_reuse_features(text)
-        row.extend(ru[k] for k in REUSE_FEATURE_NAMES)
+    if "reuse_peak_reuse_abs" in artifacts["feature_names"]:
+        row.append(token_reuse_features(text)["peak_reuse_abs"])
     return np.array(row, dtype=float)
 
 
