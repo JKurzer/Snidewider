@@ -9,7 +9,5 @@ data/derived/*
 !data/raw/.gitkeep
 !data/derived/.gitkeep
 !data/derived/gate_spec.json
-papers/*.pdf
-!papers/hanada2014-qgram-search.pdf
 .pytest_cache/
 .ruff_cache/
