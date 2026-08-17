@@ -16,6 +16,7 @@ from pathlib import Path
 import numpy as np
 
 from ai_text_detection import _csa_native, qgram
+from ai_text_detection.bigrams import BIGRAM_FEATURE_NAMES, bigram_rates
 from ai_text_detection.charstat import CHARSTAT_FEATURE_NAMES, charstat_features
 from ai_text_detection.collapse import COLLAPSE_FEATURE_NAMES, collapse_features
 from ai_text_detection.coverage import COVERAGE_FEATURE_NAMES, coverage_features
@@ -68,6 +69,9 @@ def featurize(text: str, artifacts: dict, *, csa_mode: str = "impute") -> np.nda
         s = burst.random_change_series(text, window=150, samples=256, min_gap=50,
                                        metric="ck2", unit="tokens")
         row.append(float(np.mean(s)) if s else np.nan)
+    if any(n.startswith("bg_") for n in artifacts["feature_names"]):
+        rates = bigram_rates(text)
+        row.extend(rates[k] for k in BIGRAM_FEATURE_NAMES)
     return np.array(row, dtype=float)
 
 
