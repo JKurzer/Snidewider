@@ -2,6 +2,14 @@
 
 Ordered by Donk, 2026-08-16. Each item links its evidence trail.
 
+## 0. PARKED — compressed-suffix-array measures as a Kolmogorov proxy
+
+Per-doc CSA-derived statistics as an approximation of Kolmogorov
+complexity (the ultimate "structure = entropy" measure). DO NOT PURSUE
+YET — expected hard: needs a proper compressed-SA implementation and a
+principled answer to what the statistic even is. (docs/condensates.md +
+docs/equi2026-qpm-review.md for the framing.)
+
 ## Feature packs (fleet candidates)
 
 1. **Comma-context / situational bigrams** (Jin–Zaitsu lineage via
@@ -13,7 +21,10 @@ Ordered by Donk, 2026-08-16. Each item links its evidence trail.
    strongest single contrast feature ever benched here (0.912/0.591).
    Panel increment = TIE (info already present via coverage channel) -> not
    wired per RULE 6; kept as the fast-lane pack. ms_ uses cross-bucket refs
-   (A vs B+C grams) after the expected in-fold crater taught us nothing new.**
+   (A vs B+C grams) after the expected in-fold crater taught us nothing new.
+   Diet attempt (cut 8 weak-solo features -> cond22): tail DROPPED to 0.705
+   (AUROC flat) - the 'dilution' hypothesis fails measurement; the weak
+   solos earn their keep in interaction. Full 30 restored and re-verified.**
 3. **Alliteration/phonotactic rate** (Donk's whitespace find — nobody in the
    lit does this): initial-phoneme repeat rate per sentence; humans avoid
    alliteration except as device, AI doesn't modulate. Needs a light
