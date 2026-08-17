@@ -26,6 +26,8 @@ from ai_text_detection.dct_shapes import dct_tail_features
 from ai_text_detection.evaldata import split_buckets
 from ai_text_detection.exemplar import ExemplarBank, bank_self_indices, exemplar_vector
 from ai_text_detection.feature_sets import qgram12_vector, relative_vector
+from ai_text_detection.charstat import CHARSTAT_FEATURE_NAMES, charstat_features
+from ai_text_detection.collapse import COLLAPSE_FEATURE_NAMES, collapse_features
 from ai_text_detection.shape import SHAPE_FEATURE_NAMES, shape_features
 from ai_text_detection.stats_features import STAT_FEATURE_NAMES, stat_features
 
@@ -45,6 +47,8 @@ def featurize_all(text: str, bank_ai: ExemplarBank, bank_hu: ExemplarBank,
     tail = dct_tail_features(text)
     shape = shape_features(text)
     stats = stat_features(text)
+    col = collapse_features(text)
+    chr_ = charstat_features(text)  # frozen ENGLISH_CHAR_REF
     row = (
         relative_vector(text)
         + qgram12_vector(text)
@@ -57,6 +61,8 @@ def featurize_all(text: str, bank_ai: ExemplarBank, bank_hu: ExemplarBank,
     if refs is not None:
         cov = coverage_features(text, refs[0], refs[1], exclude=exclude)
         row += [cov[k] for k in COVERAGE_FEATURE_NAMES]
+    row += [col[k] for k in COLLAPSE_FEATURE_NAMES]
+    row += [chr_[k] for k in CHARSTAT_FEATURE_NAMES]
     return row
 
 
@@ -75,6 +81,7 @@ def main() -> None:
     bc = pd.concat([buckets["B"], buckets["C"]])
     refs = ({q: build_reference(bc[bc.model == "human"].generation, q) for q in QS},
             {q: build_reference(bc[bc.model != "human"].generation, q) for q in QS})
+    ref_sums = {q: None for q in QS}  # coverage handled via refs above
     texts_a = [str(t) for t in a.generation]
     sources_a = list(a.source_id)
 

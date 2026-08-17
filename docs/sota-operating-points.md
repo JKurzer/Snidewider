@@ -46,11 +46,15 @@ exemplar LOO, cross-bucket coverage refs)
 
 | model | AUROC | TPR@5e-2 | TPR@1e-2 | TPR@1e-3 |
 |---|---|---|---|---|
-| **panel HGB (120 feats)** | **0.9706** | **0.878** | **0.711** | **0.456** |
-| L0 champ (12 feats) | 0.9473 | 0.808 | 0.639 | 0.133 |
-| HGB-stack (hgb-as-feature) | 0.9669 | 0.870 | 0.663 | 0.198 |
-| L0-stack | 0.9669 | 0.862 | 0.644 | 0.430 |
+| **panel HGB (156 feats)** | **0.9899** | **0.959** | **0.866** | **0.590** |
+| L0 champ (14 feats) | 0.9407 | 0.775 | 0.611 | 0.349 |
 | exam ensemble (81-feat families) | 0.7861 | 0.260 | 0.121 | 0.047 |
+
+(120-feat + stack variants superseded by the 156-feat panel; see git history.)
+The 36 distillation features (collapse-spectrum + char census) alone score
+0.986 AUROC / 0.832 TPR@1e-2 on dev C — bucket-agnostic per probe_crossbucket
+(all train/read pairs 0.975–0.993). At the RAID 5% norm we are at 0.959 TPR:
+Binoculars-band, with regexes, counters, and zlib.
 
 Dev<->holdout tax is ~1x across the board now. The stacked-generalizer
 design (HGB score as a downstream feature) was tried and does NOT beat the
