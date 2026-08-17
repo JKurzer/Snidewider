@@ -2,13 +2,15 @@
 
 Ordered by Donk, 2026-08-16. Each item links its evidence trail.
 
-## 0. PARKED — compressed-suffix-array measures as a Kolmogorov proxy
+## 0. PURSUED — Kolmogorov proxies (fleet_dragon.py, 2026-08-16)
 
-Per-doc CSA-derived statistics as an approximation of Kolmogorov
-complexity (the ultimate "structure = entropy" measure). DO NOT PURSUE
-YET — expected hard: needs a proper compressed-SA implementation and a
-principled answer to what the statistic even is. (docs/condensates.md +
-docs/equi2026-qpm-review.md for the framing.)
+The ladder was climbed: Kasai-LCP self-similarity stats, Re-Pair grammar
+size, SAM transition counts. OUTCOME: individually near coin-flip
+(0.51-0.53 solo), dragon6 alone 0.773/0.177, zero increment over the panel
+— absolute complexity varies by domain/length more than by generator on
+this mix; the signal lives in REFERENCE-RELATIVE measures. Kept as
+fleet-benched pack; revisit on longer-document data. The full CSA-compressed
+Kolmogorov estimator remains unbuilt (hard, low expected value now).
 
 ## Feature packs (fleet candidates)
 

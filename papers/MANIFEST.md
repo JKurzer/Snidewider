@@ -38,6 +38,7 @@ sentence encoding (`dct.py`, `docs/dct-encoder.md`), hazimehh/L0Learn
 
 | file | content |
 |---|---|
+| navarro2020-indexing-repetitive-collections.pdf | Navarro's survey — THE repetitiveness ladder map (delta/gamma/r/z/b/g hierarchy); the dragon's hunting map (fleet_dragon.md)
 | alanko2025-graph-indexing-beyond-wheeler.pdf | graph indexing theory (post-Wheeler) |
 | alanko2025-compact-structures-collections-sets.pdf | sets-of-sets compact indexes |
 | makinen2026-adaptive-compressed-suffix-arrays.pdf | small/fast compressed SA (infra) |
