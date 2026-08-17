@@ -41,14 +41,15 @@ def main() -> None:
     check("row 0 (bank_hu member) ex_hu_min > 0", Xa[0, hu_min_col] > 0,
           f"(got {Xa[0, hu_min_col]:.4f})")
 
-    print("== PRODUCTION pipeline.featurize vs cache, 60 C rows ==", flush=True)
+    print("== PRODUCTION pipeline.featurize (csa_mode=full) vs cache, 60 C rows ==",
+          flush=True)
     cb = buckets["C"]
     Xc = cache["X_C"]
     idx = np.linspace(0, len(cb) - 1, SAMPLE).astype(int)
     gens = list(cb.generation)
     mismatch = 0
     for i in idx:
-        fresh = pipeline.featurize(str(gens[i]), artifacts)
+        fresh = pipeline.featurize(str(gens[i]), artifacts, csa_mode="full")
         cached = Xc[i]
         if not np.allclose(np.nan_to_num(fresh), np.nan_to_num(cached), atol=1e-9):
             d = np.abs(np.nan_to_num(fresh) - np.nan_to_num(cached))
@@ -59,10 +60,18 @@ def main() -> None:
           f"({mismatch} mismatched rows)")
 
     print("== purity: same doc twice (production path) ==", flush=True)
-    twice = pipeline.featurize(str(gens[idx[0]]), artifacts)
+    twice = pipeline.featurize(str(gens[idx[0]]), artifacts, csa_mode="full")
     check("pure function", np.array_equal(
         np.nan_to_num(twice),
-        np.nan_to_num(pipeline.featurize(str(gens[idx[0]]), artifacts))))
+        np.nan_to_num(pipeline.featurize(str(gens[idx[0]]), artifacts, csa_mode="full"))))
+
+    print("== impute mode: csa_* columns come from A-means ==", flush=True)
+    names0 = list(cache["feature_names"])
+    csa_idx = [names0.index(f"csa_{k}") for k in ("n", "wt_rate", "sada_rate")]
+    cheap = pipeline.featurize(str(gens[idx[1]]), artifacts, csa_mode="impute")
+    want = artifacts["impute_means"][csa_idx]
+    check("impute mode fills csa cols from A-means",
+          bool(np.allclose(cheap[csa_idx], want, atol=1e-12)))
 
     print("== NaN-rate audit per bucket ==", flush=True)
     for b in "ABC":

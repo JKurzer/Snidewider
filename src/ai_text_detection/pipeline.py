@@ -28,8 +28,14 @@ from ai_text_detection.stats_features import STAT_FEATURE_NAMES, stat_features
 BUNDLE = Path("data/derived/detector_bundle.pkl")
 
 
-def featurize(text: str, artifacts: dict) -> np.ndarray:
-    """The full panel vector for one doc, in artifacts['feature_names'] order."""
+def featurize(text: str, artifacts: dict, *, csa_mode: str = "impute") -> np.ndarray:
+    """The panel vector for one doc, in artifacts['feature_names'] order.
+
+    csa_mode: "impute" (production default) fills the three csa_* columns
+    with their A-fit imputation means -- the CSA trio measured ~zero marginal
+    value in the mixture and costs ~27ms/doc (fleet_csa_ablation). "full"
+    computes the real CSA measures (forensics/verification path).
+    """
     tail = dct_tail_features(text)
     shape = shape_features(text)
     stats = stat_features(text)
@@ -37,8 +43,14 @@ def featurize(text: str, artifacts: dict) -> np.ndarray:
     chr_ = charstat_features(text)  # frozen ENGLISH_CHAR_REF inside
     cov = coverage_features(text, artifacts["ref_hu"], artifacts["ref_ai"])
     b = text.encode("utf-8")
-    csa = _csa_native.csa_stats(b)
     n = max(1, len(b))
+    if csa_mode == "full":
+        csa = _csa_native.csa_stats(b)
+        csa_vals = [float(len(b)), csa["csa_wt_bytes"] / n, csa["csa_sada_bytes"] / n]
+    else:
+        means = artifacts["impute_means"]
+        names = artifacts["feature_names"]
+        csa_vals = [float(means[names.index(f"csa_{k}")]) for k in ("n", "wt_rate", "sada_rate")]
     row = (
         relative_vector(text)
         + qgram12_vector(text)
@@ -49,7 +61,7 @@ def featurize(text: str, artifacts: dict) -> np.ndarray:
         + [cov[k] for k in COVERAGE_FEATURE_NAMES]
         + [col[k] for k in COLLAPSE_FEATURE_NAMES]
         + [chr_[k] for k in CHARSTAT_FEATURE_NAMES]
-        + [float(len(b)), csa["csa_wt_bytes"] / n, csa["csa_sada_bytes"] / n]
+        + csa_vals
     )
     if "qg_s256_ck2_mean" in artifacts["feature_names"]:
         from ai_text_detection import burst
@@ -59,8 +71,8 @@ def featurize(text: str, artifacts: dict) -> np.ndarray:
     return np.array(row, dtype=float)
 
 
-def featurize_batch(texts, artifacts: dict) -> np.ndarray:
-    return np.array([featurize(str(t), artifacts) for t in texts])
+def featurize_batch(texts, artifacts: dict, *, csa_mode: str = "impute") -> np.ndarray:
+    return np.array([featurize(str(t), artifacts, csa_mode=csa_mode) for t in texts])
 
 
 def load_artifacts(path: Path = BUNDLE) -> dict:
