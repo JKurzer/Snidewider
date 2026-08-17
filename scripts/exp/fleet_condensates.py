@@ -134,13 +134,18 @@ def sam_states_rate(b: bytes) -> float:
 
 
 def bwt_runs_rate(b: bytes) -> float:
+    # canonical r: BWT over the SENTINEL-terminated string (fleet audit:
+    # bare-suffix order \!= rotation order; only the sentinel version is the
+    # literature's r). 0x00 never occurs in valid UTF-8 -> safe sentinel.
     n = len(b)
     if n < 10:
         return np.nan
-    sa = sorted(range(n), key=lambda i: b[i:])
-    bw = bytes(b[i - 1] if i else b[-1] for i in sa)
-    runs = 1 + sum(1 for i in range(1, n) if bw[i] != bw[i - 1])
-    return runs / n
+    s = b + b"\x00"
+    m = len(s)
+    sa = sorted(range(m), key=lambda i: s[i:])
+    bw = bytes(s[i - 1] if i else s[-1] for i in sa)
+    runs = 1 + sum(1 for i in range(1, m) if bw[i] != bw[i - 1])
+    return runs / m
 
 
 def lz77_phrases_rate(b: bytes) -> float:
