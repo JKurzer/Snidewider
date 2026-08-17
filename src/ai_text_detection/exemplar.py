@@ -20,6 +20,11 @@ from dataclasses import dataclass
 
 from ai_text_detection import qgram
 
+try:
+    from ai_text_detection import _qgram_native as _qn
+except ImportError:  # pragma: no cover
+    _qn = None
+
 Q = 3
 
 EXEMPLAR_FEATURE_NAMES = (
@@ -129,8 +134,21 @@ def exemplar_features(
     (negative = closer to the AI bank = AI-like).
     """
     doc_total = profile_total(doc_profile)
-    ai_raw, ai_n = _distances(doc_profile, doc_total, ai_bank, ai_self_index)
-    hu_raw, hu_n = _distances(doc_profile, doc_total, hu_bank, hu_self_index)
+    if _qn is not None:  # native fast path: banks resident in C++ (perf fleet)
+        key = f"{len(ai_bank)}:{len(hu_bank)}:{hash(tuple(ai_bank.totals))}"
+        if _qn.banks_key() != key:
+            _qn.load_banks(ai_bank.profiles, ai_bank.totals,
+                           hu_bank.profiles, hu_bank.totals, key)
+        d = _qn.bank_distances(doc_profile, doc_total,
+                               -1 if ai_self_index is None else ai_self_index,
+                               -1 if hu_self_index is None else hu_self_index)
+        ai_raw = [v for v in d["ai_raw"].tolist() if v == v]
+        ai_n = [v for v in d["ai_norm"].tolist() if v == v]
+        hu_raw = [v for v in d["hu_raw"].tolist() if v == v]
+        hu_n = [v for v in d["hu_norm"].tolist() if v == v]
+    else:
+        ai_raw, ai_n = _distances(doc_profile, doc_total, ai_bank, ai_self_index)
+        hu_raw, hu_n = _distances(doc_profile, doc_total, hu_bank, hu_self_index)
     ai_min, ai_mean, ai_p10 = min(ai_n), statistics.fmean(ai_n), _p10(ai_n)
     hu_min, hu_mean, hu_p10 = min(hu_n), statistics.fmean(hu_n), _p10(hu_n)
     return {

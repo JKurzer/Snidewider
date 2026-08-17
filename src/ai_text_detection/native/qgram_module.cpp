@@ -11,6 +11,8 @@
 // Byte-oriented: text encoding policy lives on the Python side.
 #include <pybind11/pybind11.h>
 
+#include <pybind11/numpy.h>
+
 #include <algorithm>
 #include <chrono>
 #include <cstdint>
@@ -134,6 +136,59 @@ std::int64_t distance(const py::bytes& a, const py::bytes& b, int q) {
 std::pair<std::int64_t, std::int64_t> diff_profiles(const py::iterable& x,
                                                     const py::iterable& y) {
     return profile_diff(profile_from_py(x), profile_from_py(y));
+}
+
+// ---------------------------------------------------------------------------
+// Bank registry: exemplar-style batch scoring without per-call marshalling.
+// Profiles live here once; each doc pays ONE conversion of its own profile.
+struct BankSet {
+    std::vector<Profile> profiles;
+    std::vector<Count> totals;
+};
+BankSet g_bank_ai, g_bank_hu;
+std::string g_bank_key;
+
+BankSet bank_from_py(const py::iterable& profiles, const py::iterable& totals) {
+    BankSet b;
+    for (const auto& p : profiles) b.profiles.push_back(profile_from_py(p.cast<py::iterable>()));
+    for (const auto& t : totals) b.totals.push_back(t.cast<Count>());
+    return b;
+}
+
+void load_banks(const py::iterable& ai_profiles, const py::iterable& ai_totals,
+                const py::iterable& hu_profiles, const py::iterable& hu_totals,
+                const std::string& key) {
+    g_bank_ai = bank_from_py(ai_profiles, ai_totals);
+    g_bank_hu = bank_from_py(hu_profiles, hu_totals);
+    g_bank_key = key;
+}
+
+std::string banks_key() { return g_bank_key; }
+
+py::dict bank_distances(const py::iterable& doc_profile, std::int64_t doc_total,
+                        std::int64_t ai_skip, std::int64_t hu_skip) {
+    const Profile doc = profile_from_py(doc_profile);
+    py::dict out;
+    for (int side = 0; side < 2; ++side) {
+        const BankSet& bank = side == 0 ? g_bank_ai : g_bank_hu;
+        const std::int64_t skip = side == 0 ? ai_skip : hu_skip;
+        const std::size_t m = bank.profiles.size();
+        py::array_t<double> raw(std::vector<std::ptrdiff_t>{(std::ptrdiff_t)m});
+        py::array_t<double> norm(std::vector<std::ptrdiff_t>{(std::ptrdiff_t)m});
+        auto rm = raw.mutable_unchecked<1>();
+        auto nm = norm.mutable_unchecked<1>();
+        for (std::size_t i = 0; i < m; ++i) {
+            if ((std::int64_t)i == skip) { rm(i) = std::nan(""); nm(i) = std::nan(""); continue; }
+            const auto [pos, neg] = profile_diff(doc, bank.profiles[i]);
+            const double d = static_cast<double>(pos + neg);
+            const double denom = static_cast<double>(doc_total + bank.totals[i]);
+            rm(i) = d;
+            nm(i) = denom > 0 ? d / denom : 0.0;
+        }
+        out[side == 0 ? "ai_raw" : "hu_raw"] = raw;
+        out[side == 0 ? "ai_norm" : "hu_norm"] = norm;
+    }
+    return out;
 }
 
 }  // namespace
@@ -437,4 +492,11 @@ PYBIND11_MODULE(_qgram_native, m) {
           "Ukkonen Array-Search (O(|t|k)); same results, bench baseline.");
     m.def("search_debug", &search_debug, py::arg("t"), py::arg("p"), py::arg("q") = 5,
           py::arg("k"), "Hanada search with profiling counters (PERF-RULES instrumentation).");
+    m.def("load_banks", &load_banks, py::arg("ai_profiles"), py::arg("ai_totals"),
+          py::arg("hu_profiles"), py::arg("hu_totals"), py::arg("key"),
+          "Load exemplar banks into the process-resident registry (once per process).");
+    m.def("banks_key", &banks_key, "Registry key of the currently loaded banks.");
+    m.def("bank_distances", &bank_distances, py::arg("doc_profile"), py::arg("doc_total"),
+          py::arg("ai_skip") = -1, py::arg("hu_skip") = -1,
+          "Raw + normalized distances from one doc profile to every bank exemplar.");
 }
