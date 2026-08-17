@@ -18,11 +18,13 @@ import numpy as np
 
 from ai_text_detection.stats_features import WORD_RE
 
+# NB: spec_k1/spec_k2 and cond_entropy were dropped (fleet I audit): exact
+# duplicates of stats_features' hapax/dis and charstat's bigram_cond_entropy.
 COLLAPSE_FEATURE_NAMES = (
-    "spec_k1", "spec_k2", "spec_k3", "spec_k4_7",
+    "spec_k3", "spec_k4_7",
     "tail_mass", "heaps_25", "heaps_50", "heaps_75",
     "zipf_head_slope", "zipf_tail_slope", "slope_ratio",
-    "bigram_repeat_mass", "cond_entropy",
+    "bigram_repeat_mass",
 )
 
 
@@ -37,7 +39,8 @@ def collapse_features(text: str) -> dict[str, float]:
     freq_of_freq = Counter(counts.tolist())
 
     # frequency spectrum: fraction of TYPES appearing exactly k times
-    spec = {f"spec_k{k}": freq_of_freq.get(k, 0) / v for k in (1, 2, 3)}
+    # (k1/k2 live in stats_features as hapax/dis - not duplicated here)
+    spec = {"spec_k3": freq_of_freq.get(3, 0) / v}
     spec["spec_k4_7"] = sum(freq_of_freq.get(k, 0) for k in range(4, 8)) / v
 
     # tail mass: fraction of TOKENS from the least-frequent half of the inventory
@@ -68,15 +71,7 @@ def collapse_features(text: str) -> dict[str, float]:
     bg = Counter(zip(toks, toks[1:]))
     repeat_mass = sum(c for c in bg.values() if c > 1) / max(1, n - 1)
 
-    # conditional char entropy H(c2|c1) within the doc (single pass)
-    chars = text.lower()
-    joint = Counter(zip(chars, chars[1:]))
-    first = Counter(chars[:-1])
-    cond_h = 0.0
-    m = max(1, len(chars) - 1)
-    for (c1, c2), cnt in joint.items():
-        p = cnt / m
-        cond_h -= p * math.log2(cnt / first[c1])
+    # (conditional char entropy lives in charstat.bigram_cond_entropy)
     return {
         **spec,
         "tail_mass": tail_mass,
@@ -84,5 +79,4 @@ def collapse_features(text: str) -> dict[str, float]:
         "zipf_head_slope": head_slope, "zipf_tail_slope": tail_slope,
         "slope_ratio": ratio,
         "bigram_repeat_mass": float(repeat_mass),
-        "cond_entropy": cond_h,
     }

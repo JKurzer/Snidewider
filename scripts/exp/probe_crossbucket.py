@@ -19,7 +19,7 @@ for b in "ABC":
     bad = np.where(~np.isfinite(X[b]))
     X[b][bad] = np.take(means, bad[1])
 
-DISTILL = list(range(120, 156))
+DISTILL = list(range(120, 153))  # deduped to 33 (fleet I audit)
 
 for train in "ABC":
     m_all = HistGradientBoostingClassifier(**HGB_PARAMS).fit(X[train], y[train])
@@ -27,8 +27,8 @@ for train in "ABC":
     for read in "ABC":
         if read == train:
             continue
-        for tag, model, cols in (("full156", m_all, slice(None)),
-                                 ("distill36", m_dis, DISTILL)):
+        for tag, model, cols in (("full153", m_all, slice(None)),
+                                 ("distill33", m_dis, DISTILL)):
             s = model.predict_proba(X[read][:, cols])[:, 1]
             roc = auroc(list(s[y[read] == 1]), list(s[y[read] == 0]))
             r = tpr_at_fpr(list(s[y[read] == 1]), list(s[y[read] == 0]), fpr=1e-2)
