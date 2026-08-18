@@ -21,7 +21,7 @@ from ai_text_detection.charstat import CHARSTAT_FEATURE_NAMES, charstat_features
 from ai_text_detection.collapse import COLLAPSE_FEATURE_NAMES, collapse_features
 from ai_text_detection.coverage import COVERAGE_FEATURE_NAMES, coverage_features
 from ai_text_detection.dct_shapes import dct_tail_features
-from ai_text_detection.exemplar import ExemplarBank, exemplar_vector
+from ai_text_detection.exemplar import ExemplarBank, exemplar_features
 from ai_text_detection.feature_sets import qgram12_vector, relative_vector
 from ai_text_detection.shape import SHAPE_FEATURE_NAMES, shape_features
 from ai_text_detection.stats_features import STAT_FEATURE_NAMES, stat_features
@@ -53,14 +53,19 @@ def featurize(text: str, artifacts: dict, *, csa_mode: str = "impute") -> np.nda
         means = artifacts["impute_means"]
         names = artifacts["feature_names"]
         csa_vals = [float(means[names.index(f"csa_{k}")]) for k in ("n", "wt_rate", "sada_rate")]
+    exf = exemplar_features(qgram.profile(b, 3),
+                            artifacts["bank_ai"], artifacts["bank_hu"])
+    feat_set = set(artifacts["feature_names"])
+    ex_names = [k for k in artifacts["feature_names"]
+                if k.startswith("ex_") and k != "ex_contrast_mode"]
     row = (
         relative_vector(text)
         + qgram12_vector(text)
-        + exemplar_vector(qgram.profile(b, 3), artifacts["bank_ai"], artifacts["bank_hu"])
-        + [tail[k] for k in sorted(tail)]
+        + [exf[n] for n in ex_names]
+        + [tail[k] for k in sorted(tail) if f"dct_{k}" in feat_set]
         + [shape[k] for k in SHAPE_FEATURE_NAMES]
         + [stats[k] for k in STAT_FEATURE_NAMES]
-        + [cov[k] for k in COVERAGE_FEATURE_NAMES]
+        + [cov[k] for k in COVERAGE_FEATURE_NAMES if k in feat_set]
         + [col[k] for k in COLLAPSE_FEATURE_NAMES]
         + [chr_[k] for k in CHARSTAT_FEATURE_NAMES]
         + csa_vals
@@ -72,9 +77,12 @@ def featurize(text: str, artifacts: dict, *, csa_mode: str = "impute") -> np.nda
         row.append(float(np.mean(s)) if s else np.nan)
     if any(n.startswith("bg_") for n in artifacts["feature_names"]):
         rates = bigram_rates(text)
-        row.extend(rates[k] for k in BIGRAM_FEATURE_NAMES)
-    if "reuse_peak_reuse_abs" in artifacts["feature_names"]:
-        row.append(token_reuse_features(text)["peak_reuse_abs"])
+        row.extend(rates[k] for k in BIGRAM_FEATURE_NAMES if k in feat_set)
+    if any(n.startswith("reuse_") for n in artifacts["feature_names"]):
+        ru = token_reuse_features(text)
+        row.extend(ru[k] for k in REUSE_FEATURE_NAMES)
+    if "ex_contrast_mode" in artifacts["feature_names"]:
+        row.append(exf["ex_contrast_mode"])
     return np.array(row, dtype=float)
 
 

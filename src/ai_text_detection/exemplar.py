@@ -16,6 +16,8 @@ Pure functions / read-only banks (RULES #5); caching lives in ExemplarBank.
 from __future__ import annotations
 
 import statistics
+
+import numpy as np
 from dataclasses import dataclass
 
 from ai_text_detection import qgram
@@ -39,6 +41,7 @@ EXEMPLAR_FEATURE_NAMES = (
     "ex_contrast_min",
     "ex_contrast_mean",
     "ex_contrast_p10",
+    "ex_contrast_mode",
 )
 
 
@@ -151,6 +154,14 @@ def exemplar_features(
         hu_raw, hu_n = _distances(doc_profile, doc_total, hu_bank, hu_self_index)
     ai_min, ai_mean, ai_p10 = min(ai_n), statistics.fmean(ai_n), _p10(ai_n)
     hu_min, hu_mean, hu_p10 = min(hu_n), statistics.fmean(hu_n), _p10(hu_n)
+
+    def _mode(vals: list[float]) -> float:
+        # densest neighborhood of the bank: center of the fullest of 20
+        # equal-width bins over the normalized-distance range
+        hist, edges = np.histogram(vals, bins=20)
+        mid = int(np.argmax(hist))
+        return float((edges[mid] + edges[mid + 1]) / 2)
+
     return {
         "ex_ai_min": ai_min,
         "ex_ai_mean": ai_mean,
@@ -163,6 +174,7 @@ def exemplar_features(
         "ex_contrast_min": ai_min - hu_min,
         "ex_contrast_mean": ai_mean - hu_mean,
         "ex_contrast_p10": ai_p10 - hu_p10,
+        "ex_contrast_mode": _mode(ai_n) - _mode(hu_n),
     }
 
 
