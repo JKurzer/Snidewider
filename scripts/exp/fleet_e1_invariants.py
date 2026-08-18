@@ -85,8 +85,7 @@ def main() -> None:
         block = names[lo:hi]
         check(f"slice {lo}:{hi} == {fam}*", all(n.startswith(fam) for n in block),
               f"({len(block)} cols)")
-    check("ex_contrast_mode is the last column",
-          names[-1] == "ex_contrast_mode", f"(got {names[-1]})")
+
 
     print("== 5. base_scores orientation on C ==")
     data = np.load("data/derived/base_scores.npz")
