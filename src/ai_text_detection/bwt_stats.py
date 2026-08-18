@@ -30,11 +30,13 @@ def _ent(counts, n: int) -> float:
     return float(-sum((c / n) * math.log2(c / n) for c in counts.values()))
 
 
-def bwt_features(text: str) -> dict[str, float]:
+def bwt_features(text: str, bwt=None) -> dict[str, float]:
     b = text.encode("utf-8")
     if len(b) < 200:
         return {k: math.nan for k in BWT_FEATURE_NAMES}
-    bwt = np.asarray(_csa_native.csa_stats(b)["bwt"])
+    if bwt is None:
+        bwt = _csa_native.csa_stats(b)["bwt"]
+    bwt = np.asarray(bwt)
     # run lengths of consecutive equal BWT symbols
     cuts = np.nonzero(np.diff(bwt) != 0)[0] + 1
     runs = np.diff(np.concatenate(([0], cuts, [len(bwt)])))

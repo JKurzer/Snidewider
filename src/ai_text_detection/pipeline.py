@@ -48,12 +48,14 @@ def featurize(text: str, artifacts: dict, *, csa_mode: str = "impute") -> np.nda
     cov = coverage_features(text, artifacts["ref_hu"], artifacts["ref_ai"])
     b = text.encode("utf-8")
     n = max(1, len(b))
+    names = artifacts["feature_names"]
+    need_bwt = any(n_.startswith("bwt_") for n_ in names)
+    # one CSA build serves both the csa trio (full mode) and the bwt block
+    csa = _csa_native.csa_stats(b) if (csa_mode == "full" or need_bwt) else None
     if csa_mode == "full":
-        csa = _csa_native.csa_stats(b)
         csa_vals = [float(len(b)), csa["csa_wt_bytes"] / n, csa["csa_sada_bytes"] / n]
     else:
         means = artifacts["impute_means"]
-        names = artifacts["feature_names"]
         csa_vals = [float(means[names.index(f"csa_{k}")]) for k in ("n", "wt_rate", "sada_rate")]
     exf = exemplar_features(qgram.profile(b, 3),
                             artifacts["bank_ai"], artifacts["bank_hu"])
@@ -86,8 +88,8 @@ def featurize(text: str, artifacts: dict, *, csa_mode: str = "impute") -> np.nda
     if any(k in feat_set for k in CHARGRAM_FEATURE_NAMES):
         cg = chargram_features(text)
         row.extend(cg[k] for k in CHARGRAM_FEATURE_NAMES if k in feat_set)
-    if any(n.startswith("bwt_") for n in artifacts["feature_names"]):
-        bw = bwt_features(text)
+    if need_bwt:
+        bw = bwt_features(text, bwt=None if csa is None else csa["bwt"])
         row.extend(bw[k] for k in BWT_FEATURE_NAMES)
     if "oct_hits" in artifacts["feature_names"]:
         from ai_text_detection.token_bigrams import oct_hits_features
