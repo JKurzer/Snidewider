@@ -44,6 +44,48 @@ def token_bigram_rates(text: str) -> dict[str, float]:
 REUSE_FEATURE_NAMES = ("peak_reuse", "peak_reuse_abs", "reuse_ge2", "reuse_ge3",
                        "top_share")
 
+OCT_FEATURE_NAMES = ("oct_repeat_rate", "oct_repeat_abs")
+
+OCT_HITS_FEATURE_NAMES = ("oct_hits", "oct_hits_rate")
+
+
+def oct_hits_features(text: str, span: int = 8) -> dict[str, float]:
+    """Donk's octgram recurrence: for each token, COUNT its appearances in
+    the preceding octgram and the succeeding octgram ([oct] token [oct]),
+    summed cumulatively over the doc. One doc-level score (plus its
+    per-token rate). Every repeated pair contributes twice (seen from both
+    sides); multiple occurrences in a window each count.
+    """
+    toks = [w.lower() for w in WORD_RE.findall(text)]
+    n = len(toks)
+    if n < 2 * span + 1:
+        return {k: math.nan for k in OCT_HITS_FEATURE_NAMES}
+    hits = 0
+    for i, t in enumerate(toks):
+        hits += toks[max(0, i - span):i].count(t)
+        hits += toks[i + 1:i + span + 1].count(t)
+    return {"oct_hits": float(hits), "oct_hits_rate": hits / n}
+
+
+def oct_repeat_features(text: str, half: int = 4) -> dict[str, float]:
+    """Adjacent-octgram recurrence: for each token, do any of its 8 nearest
+    neighbors (+/-4 positions) equal it? Rate = fraction of tokens that
+    recur inside their adjacent octgram. Local lexical recurrence -
+    distinct from bigram/trigram surface repetition (which frontier models'
+    anti-repeat glue suppresses).
+    """
+    toks = [w.lower() for w in WORD_RE.findall(text)]
+    n = len(toks)
+    if n < 2 * half + 2:
+        return {k: math.nan for k in OCT_FEATURE_NAMES}
+    hits = 0
+    for i, t in enumerate(toks):
+        lo = max(0, i - half)
+        hi = min(n, i + half + 1)
+        if t in toks[lo:i] or t in toks[i + 1:hi]:
+            hits += 1
+    return {"oct_repeat_rate": hits / n, "oct_repeat_abs": float(hits)}
+
 
 def token_reuse_features(text: str) -> dict[str, float]:
     """Peak bigram reuse: how hard the doc leans on its favorite bigram.

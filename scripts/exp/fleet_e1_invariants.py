@@ -71,7 +71,8 @@ def main() -> None:
     names = list(np.load("data/derived/full_features.npz")["feature_names"])
     # dynamic contiguous slices by prefix (surgery-proof: computed from names)
     pref_order = ["rel_", "qg_", "ex_", "dct_", "shape_", "stat_", "cov",
-                  "col_", "chr_", "csa_", "qg_s256", "bg_", "reuse_"]
+                  "col_", "chr_", "csa_", "qg_s256", "bg_", "reuse_",
+                  "tg3_", "cv_", "bwt_", "oct_", "initial_char_entropy"]
     fams: dict[str, tuple[int, int]] = {}
     for pref in pref_order:
         idx = [i for i, n in enumerate(names) if n.startswith(pref)]

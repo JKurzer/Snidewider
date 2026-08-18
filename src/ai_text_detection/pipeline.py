@@ -17,6 +17,8 @@ import numpy as np
 
 from ai_text_detection import _csa_native, qgram
 from ai_text_detection.bigrams import BIGRAM_FEATURE_NAMES, bigram_rates
+from ai_text_detection.bwt_stats import BWT_FEATURE_NAMES, bwt_features
+from ai_text_detection.chargrams import CHARGRAM_FEATURE_NAMES, chargram_features
 from ai_text_detection.charstat import CHARSTAT_FEATURE_NAMES, charstat_features
 from ai_text_detection.collapse import COLLAPSE_FEATURE_NAMES, collapse_features
 from ai_text_detection.coverage import COVERAGE_FEATURE_NAMES, coverage_features
@@ -83,6 +85,15 @@ def featurize(text: str, artifacts: dict, *, csa_mode: str = "impute") -> np.nda
         row.extend(ru[k] for k in REUSE_FEATURE_NAMES)
     if "ex_contrast_mode" in artifacts["feature_names"]:
         row.append(exf["ex_contrast_mode"])
+    if any(n.startswith("tg3_") for n in artifacts["feature_names"]):
+        cg = chargram_features(text)
+        row.extend(cg[k] for k in CHARGRAM_FEATURE_NAMES if k in feat_set)
+    if any(n.startswith("bwt_") for n in artifacts["feature_names"]):
+        bw = bwt_features(text)
+        row.extend(bw[k] for k in BWT_FEATURE_NAMES)
+    if "oct_hits" in artifacts["feature_names"]:
+        from ai_text_detection.token_bigrams import oct_hits_features
+        row.append(oct_hits_features(text)["oct_hits"])
     return np.array(row, dtype=float)
 
 
