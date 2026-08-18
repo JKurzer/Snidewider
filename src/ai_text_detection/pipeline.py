@@ -101,6 +101,10 @@ def featurize(text: str, artifacts: dict, *, csa_mode: str = "impute") -> np.nda
                                      artifacts["centroid_hu"]))
     if any(n.startswith(("delta_", "wdelta_")) for n in artifacts["feature_names"]):
         row.extend(_delta_row(text))
+    if any(n.startswith("cover_") or n == "wd_density" for n in artifacts["feature_names"]):
+        from ai_text_detection.cover import COVER_FEATURE_NAMES, cover_features
+        cv_ = cover_features(text)
+        row.extend(cv_[k] for k in COVER_FEATURE_NAMES)
     return np.array(row, dtype=float)
 
 
