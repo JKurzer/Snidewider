@@ -45,6 +45,29 @@ EXEMPLAR_FEATURE_NAMES = (
 )
 
 
+def centroid_profile(bank: "ExemplarBank") -> qgram.Profile:
+    """The bank's aggregate profile (all members' gram counts summed) -
+    ONE reference point, no per-member distance aggregation."""
+    merged: dict[int, int] = {}
+    for prof in bank.profiles:
+        for gram, count in prof:
+            merged[gram] = merged.get(gram, 0) + count
+    return tuple(sorted(merged.items()))
+
+
+def centroid_contrast(doc_profile: qgram.Profile,
+                      centroid_ai: qgram.Profile,
+                      centroid_hu: qgram.Profile) -> float:
+    """Direct (non-aggregate) exemplar feature: normalized distance to the
+    AI centroid minus the human centroid. One comparison per side."""
+    doc_total = profile_total(doc_profile)
+    d_ai = qgram.distance_profiles(doc_profile, centroid_ai)
+    d_hu = qgram.distance_profiles(doc_profile, centroid_hu)
+    t_ai = doc_total + profile_total(centroid_ai)
+    t_hu = doc_total + profile_total(centroid_hu)
+    return (d_ai / t_ai if t_ai else 0.0) - (d_hu / t_hu if t_hu else 0.0)
+
+
 def profile_total(profile: qgram.Profile) -> int:
     """Total q-gram occurrences behind a profile (== doc bytes - q + 1)."""
     return sum(c for _, c in profile)

@@ -26,7 +26,7 @@ from ai_text_detection.dct_shapes import dct_tail_features
 from ai_text_detection.exemplar import ExemplarBank, exemplar_features
 from ai_text_detection.feature_sets import qgram12_vector, relative_vector
 from ai_text_detection.shape import SHAPE_FEATURE_NAMES, shape_features
-from ai_text_detection.stats_features import STAT_FEATURE_NAMES, stat_features
+from ai_text_detection.stats_features import STAT_FEATURE_NAMES, WORD_RE, stat_features
 from ai_text_detection.token_bigrams import REUSE_FEATURE_NAMES, token_reuse_features
 
 BUNDLE = Path("data/derived/detector_bundle.pkl")
@@ -59,7 +59,7 @@ def featurize(text: str, artifacts: dict, *, csa_mode: str = "impute") -> np.nda
                             artifacts["bank_ai"], artifacts["bank_hu"])
     feat_set = set(artifacts["feature_names"])
     ex_names = [k for k in artifacts["feature_names"]
-                if k.startswith("ex_") and k != "ex_contrast_mode"]
+                if k.startswith("ex_") and k != "ex_contrast_centroid"]
     row = (
         relative_vector(text)
         + qgram12_vector(text)
@@ -83,9 +83,7 @@ def featurize(text: str, artifacts: dict, *, csa_mode: str = "impute") -> np.nda
     if any(n.startswith("reuse_") for n in artifacts["feature_names"]):
         ru = token_reuse_features(text)
         row.extend(ru[k] for k in REUSE_FEATURE_NAMES)
-    if "ex_contrast_mode" in artifacts["feature_names"]:
-        row.append(exf["ex_contrast_mode"])
-    if any(n.startswith("tg3_") for n in artifacts["feature_names"]):
+    if any(k in feat_set for k in CHARGRAM_FEATURE_NAMES):
         cg = chargram_features(text)
         row.extend(cg[k] for k in CHARGRAM_FEATURE_NAMES if k in feat_set)
     if any(n.startswith("bwt_") for n in artifacts["feature_names"]):
@@ -94,7 +92,36 @@ def featurize(text: str, artifacts: dict, *, csa_mode: str = "impute") -> np.nda
     if "oct_hits" in artifacts["feature_names"]:
         from ai_text_detection.token_bigrams import oct_hits_features
         row.append(oct_hits_features(text)["oct_hits"])
+    if "ex_contrast_centroid" in artifacts["feature_names"]:
+        from ai_text_detection.exemplar import centroid_contrast
+        row.append(centroid_contrast(qgram.profile(b, 3),
+                                     artifacts["centroid_ai"],
+                                     artifacts["centroid_hu"]))
+    if any(n.startswith(("delta_", "wdelta_")) for n in artifacts["feature_names"]):
+        row.extend(_delta_row(text))
     return np.array(row, dtype=float)
+
+
+def _delta_row(text: str) -> list[float]:
+    """The 13-feature delta family (distinct k-mer counts / k; word deltas).
+    Kept local to the pipeline so the package stays free of fleet imports."""
+    bts = text.encode("utf-8")
+    out: list[float] = []
+    ds: list[float] = []
+    for k in range(1, 9):
+        d = len(qgram.profile(bts, k)) / k if len(bts) >= k else np.nan
+        out.append(d)
+        ds.append(d)
+    finite = [d for d in ds if np.isfinite(d)]
+    if finite:
+        out.extend([float(np.nanmax(ds)), float(np.nanargmax(ds) + 1)])
+    else:
+        out.extend([np.nan, np.nan])
+    toks = [w.lower() for w in WORD_RE.findall(text)]
+    for k in (1, 2, 3):
+        grams = {tuple(toks[i:i + k]) for i in range(len(toks) - k + 1)}
+        out.append(len(grams) / k if toks else np.nan)
+    return out
 
 
 def featurize_batch(texts, artifacts: dict, *, csa_mode: str = "impute") -> np.ndarray:

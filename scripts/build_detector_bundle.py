@@ -18,7 +18,7 @@ from sklearn.ensemble import HistGradientBoostingClassifier
 
 from ai_text_detection.coverage import QS, build_reference
 from ai_text_detection.evaldata import split_buckets
-from ai_text_detection.exemplar import ExemplarBank
+from ai_text_detection.exemplar import ExemplarBank, centroid_profile
 
 HGB_PARAMS = dict(max_iter=300, max_depth=4, learning_rate=0.08,
                   max_features=0.5, random_state=7)
@@ -52,6 +52,8 @@ def main() -> None:
         "impute_means": means,
         "bank_ai": bank_ai,
         "bank_hu": bank_hu,
+        "centroid_ai": centroid_profile(bank_ai),
+        "centroid_hu": centroid_profile(bank_hu),
         "ref_ai": ref_ai,
         "ref_hu": ref_hu,
         "hgb_params": HGB_PARAMS,

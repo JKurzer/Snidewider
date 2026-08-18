@@ -72,12 +72,13 @@ def main() -> None:
     # dynamic contiguous slices by prefix (surgery-proof: computed from names)
     pref_order = ["rel_", "qg_", "ex_", "dct_", "shape_", "stat_", "cov",
                   "col_", "chr_", "csa_", "qg_s256", "bg_", "reuse_",
-                  "tg3_", "cv_", "bwt_", "oct_", "initial_char_entropy"]
+                  "tg3_", "cv_", "bwt_", "oct_", "initial_char_entropy",
+                  "delta_", "wdelta_"]
     fams: dict[str, tuple[int, int]] = {}
     for pref in pref_order:
         idx = [i for i, n in enumerate(names) if n.startswith(pref)]
-        if pref == "ex_":  # ex_contrast_mode is appended at the end, not in-block
-            idx = [i for i in idx if names[i] != "ex_contrast_mode"]
+        if pref == "ex_":  # ex_contrast_centroid is appended at the end
+            idx = [i for i in idx if names[i] != "ex_contrast_centroid"]
         if pref == "qg_":  # qg_s256_ck2_mean lives later in the layout
             idx = [i for i in idx if not names[i].startswith("qg_s256")]
         if idx:
