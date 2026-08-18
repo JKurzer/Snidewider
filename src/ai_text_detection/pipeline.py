@@ -70,8 +70,8 @@ def featurize(text: str, artifacts: dict, *, csa_mode: str = "impute") -> np.nda
         + [shape[k] for k in SHAPE_FEATURE_NAMES]
         + [stats[k] for k in STAT_FEATURE_NAMES]
         + [cov[k] for k in COVERAGE_FEATURE_NAMES if k in feat_set]
-        + [col[k] for k in COLLAPSE_FEATURE_NAMES]
-        + [chr_[k] for k in CHARSTAT_FEATURE_NAMES]
+        + [col[k] for k in COLLAPSE_FEATURE_NAMES if f"col_{k}" in feat_set]
+        + [chr_[k] for k in CHARSTAT_FEATURE_NAMES if f"chr_{k}" in feat_set]
         + csa_vals
     )
     if "qg_s256_ck2_mean" in artifacts["feature_names"]:

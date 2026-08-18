@@ -81,6 +81,8 @@ def main() -> None:
             idx = [i for i in idx if names[i] != "ex_contrast_centroid"]
         if pref == "qg_":  # qg_s256_ck2_mean lives later in the layout
             idx = [i for i in idx if not names[i].startswith("qg_s256")]
+        if pref == "cov":  # cover_* is a different family, appended later
+            idx = [i for i in idx if not names[i].startswith("cover_")]
         if idx:
             fams[pref] = (min(idx), max(idx) + 1)
     for fam, (lo, hi) in fams.items():
