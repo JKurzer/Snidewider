@@ -83,7 +83,7 @@ def main() -> None:
         print(f"  (training supplement included: {Xs.shape[0]} rows)")
     except OSError:
         pass
-    hgb = HistGradientBoostingClassifier(max_iter=300, max_depth=4, learning_rate=0.08,
+    hgb = HistGradientBoostingClassifier(max_iter=600, max_depth=8, learning_rate=0.08,
                                          max_features=0.5, random_state=7).fit(Xa, ya)
     ladder("panel HGB", hgb.predict_proba(X_ai)[:, 1], hgb.predict_proba(X_hu)[:, 1])
 

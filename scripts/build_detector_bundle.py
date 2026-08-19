@@ -20,8 +20,8 @@ from ai_text_detection.coverage import QS, build_reference
 from ai_text_detection.evaldata import split_buckets
 from ai_text_detection.exemplar import ExemplarBank, centroid_profile
 
-HGB_PARAMS = dict(max_iter=300, max_depth=4, learning_rate=0.08,
-                  max_features=0.5, random_state=7)
+HGB_PARAMS = dict(max_iter=600, max_depth=8, learning_rate=0.08,
+                  max_features=0.5, random_state=7)  # d8/i600: holdout champion (fleet Z)
 N_BANK = 150
 OUT = "data/derived/detector_bundle.pkl"
 
