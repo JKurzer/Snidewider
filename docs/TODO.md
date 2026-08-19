@@ -2,6 +2,18 @@
 
 Ordered by Donk, 2026-08-16. Each item links its evidence trail.
 
+## 0b. MEASURED NEGATIVE — adversarial mass-mixing (2026-08-19)
+
+231K A-source attack rows folded into training (98.7% of mass): clean
+holdout cratered (tail 0.754 -> 0.501) AND attacks did not improve
+(paraphrase flat at 0.608; homoglyph 0.777 -> 0.340 WORSE; zero_width_space
+0.237 alarm). Mass-mixing re-aims the model at the attacked distribution
+rather than teaching boundary robustness. Supplement benched
+(supp_features.npz.benched); the clean 261 d8/i600 champion restored
+(0.9935/0.974/0.912/0.754). Robustness needs a different mechanism
+(per-slice gates, attacked-input normalization, or a small adversarial
+head), not bulk exposure.
+
 ## 0a. MOSAIC — paraphrase-mosaic detection (Donk, 2026-08-18)
 
 Paraphrase attacks (preview: our weakest slice, 0.608) interleave TWO AI
