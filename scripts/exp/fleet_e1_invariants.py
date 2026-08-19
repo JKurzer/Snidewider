@@ -73,7 +73,7 @@ def main() -> None:
     pref_order = ["rel_", "qg_", "ex_", "dct_", "shape_", "stat_", "cov",
                   "col_", "chr_", "csa_", "qg_s256", "bg_", "reuse_",
                   "tg3_", "cv_", "bwt_", "oct_", "initial_char_entropy",
-                  "delta_", "wdelta_", "s256_"]
+                  "delta_", "wdelta_", "s256_", "anc_"]
     fams: dict[str, tuple[int, int]] = {}
     for pref in pref_order:
         idx = [i for i, n in enumerate(names) if n.startswith(pref)]

@@ -114,6 +114,10 @@ def featurize(text: str, artifacts: dict, *, csa_mode: str = "impute") -> np.nda
         if len(series) < 256:
             series = series + [np.nan] * (256 - len(series))
         row.extend(series)
+    if any(n.startswith("anc_") for n in artifacts["feature_names"]):
+        from ai_text_detection.anchors import ANCHOR_FEATURE_NAMES, anchor_features
+        anc = anchor_features(text)
+        row.extend(anc[k] for k in ANCHOR_FEATURE_NAMES)
     return np.array(row, dtype=float)
 
 
