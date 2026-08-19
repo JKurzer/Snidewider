@@ -74,14 +74,16 @@ def featurize(text: str, artifacts: dict, *, csa_mode: str = "impute") -> np.nda
         + [chr_[k] for k in CHARSTAT_FEATURE_NAMES if f"chr_{k}" in feat_set]
         + csa_vals
     )
-    need_series = ("qg_s256_ck2_mean" in artifacts["feature_names"]
-                   or any(n.startswith("s256_") for n in artifacts["feature_names"]))
-    if need_series:
+    if "qg_s256_ck2_mean" in artifacts["feature_names"]:
         from ai_text_detection import burst
-        series = burst.random_change_series(text, window=150, samples=256,
+        s_mean = burst.random_change_series(text, window=150, samples=256,
                                             min_gap=50, metric="ck2", unit="tokens")
-        if "qg_s256_ck2_mean" in artifacts["feature_names"]:
-            row.append(float(np.mean(series)) if series else np.nan)
+        row.append(float(np.mean(s_mean)) if s_mean else np.nan)
+    series = None
+    if any(n.startswith("s256_") for n in artifacts["feature_names"]):
+        from ai_text_detection import burst
+        series = burst.random_change_series(text, window=64, samples=256,
+                                            min_gap=16, metric="ck2", unit="tokens")
     if any(n.startswith("bg_") for n in artifacts["feature_names"]):
         rates = bigram_rates(text)
         row.extend(rates[k] for k in BIGRAM_FEATURE_NAMES if k in feat_set)

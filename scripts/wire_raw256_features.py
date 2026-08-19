@@ -14,7 +14,7 @@ from ai_text_detection.evaldata import split_buckets
 
 DEV_NPZ = "data/derived/full_features.npz"
 HOLD_NPZ = "data/derived/holdout_features.npz"
-SAMPLES, WINDOW, MIN_GAP = 256, 150, 50
+SAMPLES, WINDOW, MIN_GAP = 256, 64, 16  # v2: covers n>=144 tokens (v1's 150/50 masked 75% of docs as NaN)
 NEW_NAMES = [f"s256_{i:03d}" for i in range(SAMPLES)]
 
 
