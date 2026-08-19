@@ -2,6 +2,20 @@
 
 Ordered by Donk, 2026-08-16. Each item links its evidence trail.
 
+## 0a. MOSAIC — paraphrase-mosaic detection (Donk, 2026-08-18)
+
+Paraphrase attacks (preview: our weakest slice, 0.608) interleave TWO AI
+profiles: original-generator spans + paraphraser-output spans (DIPPER-class
+span substitution leaves the remainder untouched). Global features average
+the mosaic and dilute; the counter is to read the SEAMS. Fleet sketch:
+windowed local score series (burst/ck2 machinery), then bimodality/gap
+structure of the series (variance, two-mode gap, frac-low ~ 2p(1-p) for
+paraphrase fraction p), interleave frequency. Bonus angle: the paraphraser
+is itself an LLM — rewritten spans carry ITS fingerprint, so the mosaic is
+two machine clusters, not machine-vs-human. qg_s256_ck2 vector emission
+(sorted-series profile) is the instrument; bench on the cached 5.6M-row
+train paraphrase slice.
+
 ## 0. PURSUED — Kolmogorov proxies (fleet_dragon.py, 2026-08-16)
 
 The ladder was climbed: Kasai-LCP self-similarity stats, Re-Pair grammar
