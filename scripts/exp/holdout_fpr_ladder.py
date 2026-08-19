@@ -73,6 +73,16 @@ def main() -> None:
            meta.predict_proba(panel(X_hu))[:, 1])
 
     # --- tuned panel HGB (the head-to-head incumbent) on the full cache ---
+    try:
+        supp = np.load("data/derived/supp_features.npz")
+        Xs = supp["X"].astype(float)
+        bad = np.where(~np.isfinite(Xs))
+        Xs[bad] = np.take(means, bad[1])
+        Xa = np.vstack([Xa, Xs])
+        ya = np.concatenate([ya, supp["y"]])
+        print(f"  (training supplement included: {Xs.shape[0]} rows)")
+    except OSError:
+        pass
     hgb = HistGradientBoostingClassifier(max_iter=300, max_depth=4, learning_rate=0.08,
                                          max_features=0.5, random_state=7).fit(Xa, ya)
     ladder("panel HGB", hgb.predict_proba(X_ai)[:, 1], hgb.predict_proba(X_hu)[:, 1])

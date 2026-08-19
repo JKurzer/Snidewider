@@ -35,8 +35,19 @@ def main() -> None:
     bad = np.where(~np.isfinite(Xa))
     Xa[bad] = np.take(means, bad[1])
 
+    try:
+        supp = np.load("data/derived/supp_features.npz")
+        Xs = supp["X"].astype(float)
+        bad = np.where(~np.isfinite(Xs))
+        Xs[bad] = np.take(means, bad[1])
+        Xa = np.vstack([Xa, Xs])
+        ya = np.concatenate([ya, supp["y"]])
+        print(f"training supplement included: {Xs.shape}")
+    except OSError:
+        pass
+
     model = HistGradientBoostingClassifier(**HGB_PARAMS).fit(Xa, ya)
-    print(f"trained panel HGB on A: {Xa.shape}")
+    print(f"trained panel HGB on A(+supp): {Xa.shape}")
 
     df = pd.read_parquet("data/derived/raid_splits.parquet")
     a = split_buckets(df)["A"]
