@@ -74,11 +74,14 @@ def featurize(text: str, artifacts: dict, *, csa_mode: str = "impute") -> np.nda
         + [chr_[k] for k in CHARSTAT_FEATURE_NAMES if f"chr_{k}" in feat_set]
         + csa_vals
     )
-    if "qg_s256_ck2_mean" in artifacts["feature_names"]:
+    need_series = ("qg_s256_ck2_mean" in artifacts["feature_names"]
+                   or any(n.startswith("s256_") for n in artifacts["feature_names"]))
+    if need_series:
         from ai_text_detection import burst
-        s = burst.random_change_series(text, window=150, samples=256, min_gap=50,
-                                       metric="ck2", unit="tokens")
-        row.append(float(np.mean(s)) if s else np.nan)
+        series = burst.random_change_series(text, window=150, samples=256,
+                                            min_gap=50, metric="ck2", unit="tokens")
+        if "qg_s256_ck2_mean" in artifacts["feature_names"]:
+            row.append(float(np.mean(series)) if series else np.nan)
     if any(n.startswith("bg_") for n in artifacts["feature_names"]):
         rates = bigram_rates(text)
         row.extend(rates[k] for k in BIGRAM_FEATURE_NAMES if k in feat_set)
@@ -105,6 +108,10 @@ def featurize(text: str, artifacts: dict, *, csa_mode: str = "impute") -> np.nda
         from ai_text_detection.cover import COVER_FEATURE_NAMES, cover_features
         cv_ = cover_features(text)
         row.extend(cv_[k] for k in COVER_FEATURE_NAMES)
+    if any(n.startswith("s256_") for n in artifacts["feature_names"]):
+        if len(series) < 256:
+            series = series + [np.nan] * (256 - len(series))
+        row.extend(series)
     return np.array(row, dtype=float)
 
 
