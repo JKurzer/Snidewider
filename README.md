@@ -1,6 +1,6 @@
 # Snidewider
 
-*A library of text feature detectors for use in detecting, characterizing, and grouping AI text. A sample HBG model is provided*
+*A library of text feature detectors for use in detecting, characterizing, and grouping AI text. A sample HBG model is provided.*
 
 Detecting AI-generated text **at scale** and **reliably** is best done with deep learners, especially attentional transformers. However, much of the structure of humans text is only visible at the character level. Token-based learning captures much of this through second-order effects, but this is expensive, slow, and incomplete. The ~260 feature detectors and summary statistics in Snidewinder are designed to augment and annotate text to provide visibility into this deep structure. 
 
